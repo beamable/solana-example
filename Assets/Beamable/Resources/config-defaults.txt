@@ -1,0 +1,8 @@
+{
+    "cid": "1454243181754371",
+    "alias": "luke-dev",
+    "pid": "DE_1454243181754372",
+    "platform": "https://api.beamable.com",
+    "socket": "https://api.beamable.com",
+    "containerPrefix": ""
+}

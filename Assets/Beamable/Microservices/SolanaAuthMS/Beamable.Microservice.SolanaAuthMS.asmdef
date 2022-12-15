@@ -1,0 +1,18 @@
+{
+   "references":[
+     "Unity.Beamable.Runtime.Common",
+    "Unity.Beamable.Server.Runtime",
+    "Unity.Beamable.Server.Runtime.Shared",
+    "Unity.Beamable",
+    "Beamable.SmallerJSON",
+    "Unity.Beamable.Server.Runtime.Common",
+    "Unity.Beamable.Server.Runtime.Mocks",
+    "Unity.Beamable.Customer.Common",
+     "Unity.Solana.SDK"
+  ],
+  "name":"Beamable.Microservice.SolanaAuthMS",
+  "autoReferenced":false,
+  "includePlatforms":[
+     "Editor"
+  ]
+}
