@@ -1,12 +1,11 @@
 {
-    "name": "Unity.Solana.SDK",
+    "name": "Solana.Unity.SDK",
     "rootNamespace": "",
     "references": [
         "Unity.Beamable.Runtime.Common",
         "Unity.Beamable.Server.Runtime.Common",
         "Unity.Beamable.Server.Runtime.Mocks",
-        "Beamable.SmallerJSON",
-        "Unity.TextMeshPro"
+        "Beamable.SmallerJSON"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

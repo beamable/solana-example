@@ -8,7 +8,7 @@
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",
     "Unity.Beamable.Customer.Common",
-     "Unity.Solana.SDK"
+     "Solana.Unity.SDK"
   ],
   "name":"Beamable.Microservice.SolanaAuthMS",
   "autoReferenced":false,
