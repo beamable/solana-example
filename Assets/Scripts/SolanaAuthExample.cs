@@ -15,10 +15,12 @@ public class SolanaAuthExample : MonoBehaviour
 {
 	private BeamContext _ctx;
 
-	[SerializeField] private Button _connectWalletButton;
-	[SerializeField] private Button _attachButton;
-	[SerializeField] private GameObject _accountGroup;
+	[SerializeField] private GameObject _publicKeyGroup;
 	[SerializeField] private TextMeshProUGUI _publicKeyValue;
+	[SerializeField] private Button _connectWalletButton;
+	[SerializeField] private Button _attachIdentityButton;
+	[SerializeField] private Button _detachIdentityButton;
+	
 	[SerializeField] private string _providerNamespace = "Solana";
 	[SerializeField] private string _providerService = "SolanaAuthMS";
 
@@ -48,15 +50,15 @@ public class SolanaAuthExample : MonoBehaviour
 		_authService = _ctx.Api.AuthService;
 
 		_connectWalletButton.onClick.AddListener(OnConnectClicked);
-		_attachButton.onClick.AddListener(OnAttachClicked);
+		_attachIdentityButton.onClick.AddListener(OnAttachClicked);
 	}
 
 	private void Refresh()
 	{
 		_connectWalletButton.interactable = !LoggedIn;
-		_attachButton.interactable = LoggedIn;
+		_attachIdentityButton.interactable = LoggedIn;
 
-		_accountGroup.SetActive(LoggedIn);
+		_publicKeyGroup.SetActive(LoggedIn);
 		_publicKeyValue.text = LoggedIn ? _account.PublicKey.Key : String.Empty;
 	}
 
@@ -73,7 +75,7 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private async Task SendAttachRequest(ChallengeSolution challengeSolution = null)
 	{
-		_attachButton.interactable = false;
+		_attachIdentityButton.interactable = false;
 
 		StringBuilder builder = new StringBuilder();
 		builder.AppendLine("Sending a request with:");
