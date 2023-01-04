@@ -1,5 +1,7 @@
 {
-   "references":[
+   "name":"Beamable.Microservice.SolanaAuthMS",
+  "rootNamespace":"",
+  "references":[
      "Unity.Beamable.Runtime.Common",
     "Unity.Beamable.Server.Runtime",
     "Unity.Beamable.Server.Runtime.Shared",
@@ -8,11 +10,34 @@
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",
     "Unity.Beamable.Customer.Common",
-     "Solana.Unity.SDK"
+    "Beamable.Storage.SolanaStorage",
+    "Solana.Unity.SDK"
   ],
-  "name":"Beamable.Microservice.SolanaAuthMS",
-  "autoReferenced":false,
   "includePlatforms":[
      "Editor"
-  ]
+  ],
+  "excludePlatforms":[
+     
+  ],
+  "allowUnsafeCode":false,
+  "overrideReferences":true,
+  "precompiledReferences":[
+     "DnsClient.dll",
+    "MongoDB.Bson.dll",
+    "MongoDB.Driver.Core.dll",
+    "MongoDB.Driver.dll",
+    "MongoDB.Libmongocrypt.dll",
+    "System.Runtime.CompilerServices.Unsafe.dll",
+    "SharpCompress.dll",
+    "Solana.Unity.Wallet.dll",
+    "System.Buffers.dll"
+  ],
+  "autoReferenced":false,
+  "defineConstraints":[
+     
+  ],
+  "versionDefines":[
+     
+  ],
+  "noEngineReferences":false
 }
