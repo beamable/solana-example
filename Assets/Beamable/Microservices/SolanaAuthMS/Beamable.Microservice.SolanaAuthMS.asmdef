@@ -6,12 +6,11 @@
     "Unity.Beamable.Server.Runtime",
     "Unity.Beamable.Server.Runtime.Shared",
     "Unity.Beamable",
-    "Beamable.SmallerJSON",
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",
     "Unity.Beamable.Customer.Common",
-    "Beamable.Storage.SolanaStorage",
-    "Solana.Unity.SDK"
+    "Beamable.SmallerJSON",
+    "Beamable.Storage.SolanaStorage"
   ],
   "includePlatforms":[
      "Editor"
@@ -29,6 +28,11 @@
     "MongoDB.Libmongocrypt.dll",
     "System.Runtime.CompilerServices.Unsafe.dll",
     "SharpCompress.dll",
+    "BouncyCastle.Crypto.dll",
+    "Chaos.NaCl.dll",
+    "Solana.Unity.KeyStore.dll",
+    "Solana.Unity.Programs.dll",
+    "Solana.Unity.Rpc.dll",
     "Solana.Unity.Wallet.dll",
     "System.Buffers.dll"
   ],
