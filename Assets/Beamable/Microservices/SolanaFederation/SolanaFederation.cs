@@ -45,7 +45,7 @@ namespace Beamable.Microservices
 				{
 					// Signature is invalid, user identity isn't confirmed
 					BeamableLogger.LogWarning("Invalid signature {signature} for challenge {challenge} and wallet {wallet}", solution, challenge, token);
-					return new ExternalAuthenticationResponse { user_id = null };
+					throw new UnauthorizedException();
 				}
 			}
 			else

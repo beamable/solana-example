@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Beamable.Server;
+using System.Net;
 
 namespace Assets.Beamable.Microservices.SolanaFederation.Exceptions
 {
-	class InvalidAuthenticationRequest : Exception
+	class InvalidAuthenticationRequest : MicroserviceException
 	{
-		public InvalidAuthenticationRequest(string message) : base(message)
+		public InvalidAuthenticationRequest(string message) : base((int)HttpStatusCode.BadRequest, "InvalidAuthenticationRequest", message)
 		{
 		}
 	}
