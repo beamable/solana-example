@@ -14,18 +14,18 @@ namespace Beamable.Server.Clients
     using Beamable.Server;
     
     
-    /// <summary> A generated client for <see cref="Beamable.Microservices.SolanaAuthMS"/> </summary
-    public sealed class SolanaAuthMSClient : MicroserviceClient
+    /// <summary> A generated client for <see cref="Beamable.Microservices.SolanaFederation"/> </summary
+    public sealed class SolanaFederationClient : MicroserviceClient
     {
         
-        public SolanaAuthMSClient(BeamContext context = null) : 
+        public SolanaFederationClient(BeamContext context = null) : 
                 base(context)
         {
         }
         
         /// <summary>
-        /// Call the Authenticate method on the SolanaAuthMS microservice
-        /// <see cref="Beamable.Microservices.SolanaAuthMS.Authenticate"/>
+        /// Call the Authenticate method on the SolanaFederation microservice
+        /// <see cref="Beamable.Microservices.SolanaFederation.Authenticate"/>
         /// </summary>
         public Beamable.Common.Promise<ExternalAuthenticationResponse> Authenticate(string token, string challenge, string solution)
         {
@@ -36,11 +36,11 @@ namespace Beamable.Server.Clients
                     serialized_token,
                     serialized_challenge,
                     serialized_solution};
-            return this.Request<ExternalAuthenticationResponse>("SolanaAuthMS", "Solana/authenticate", serializedFields);
+            return this.Request<ExternalAuthenticationResponse>("SolanaFederation", "authenticate", serializedFields);
         }
     }
     
-    internal sealed class MicroserviceParametersSolanaAuthMSClient
+    internal sealed class MicroserviceParametersSolanaFederationClient
     {
         
         [System.SerializableAttribute()]
@@ -50,18 +50,18 @@ namespace Beamable.Server.Clients
     }
     
     [BeamContextSystemAttribute()]
-    public static class ExtensionsForSolanaAuthMSClient
+    public static class ExtensionsForSolanaFederationClient
     {
         
         [Beamable.Common.Dependencies.RegisterBeamableDependenciesAttribute()]
         public static void RegisterService(Beamable.Common.Dependencies.IDependencyBuilder builder)
         {
-            builder.AddScoped<SolanaAuthMSClient>();
+            builder.AddScoped<SolanaFederationClient>();
         }
         
-        public static SolanaAuthMSClient SolanaAuthMS(this Beamable.Server.MicroserviceClients clients)
+        public static SolanaFederationClient SolanaFederation(this Beamable.Server.MicroserviceClients clients)
         {
-            return clients.GetClient<SolanaAuthMSClient>();
+            return clients.GetClient<SolanaFederationClient>();
         }
     }
 }
