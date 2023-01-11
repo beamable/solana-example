@@ -5,7 +5,8 @@
         "Unity.Beamable.Runtime.Common",
         "Unity.Beamable.Server.Runtime.Common",
         "Unity.Beamable.Server.Runtime.Mocks",
-        "Beamable.SmallerJSON"
+        "Beamable.SmallerJSON",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
