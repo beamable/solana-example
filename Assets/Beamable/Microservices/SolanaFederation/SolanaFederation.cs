@@ -2,6 +2,7 @@ using Assets.Beamable.Microservices.SolanaFederation.Exceptions;
 using Assets.Beamable.Microservices.SolanaFederation.Services;
 using Beamable.Common;
 using Beamable.Server;
+using Solana.Unity.Rpc;
 using System;
 
 namespace Beamable.Microservices
@@ -9,19 +10,23 @@ namespace Beamable.Microservices
 	[Microservice("SolanaFederation")]
 	public class SolanaFederation : Microservice
 	{
+		private const Cluster SOLANA_CLUSTER = Cluster.DevNet;
 		private const int AUTHENTICATION_CHALLENGE_TTL_SEC = 600;
 
 		private readonly AuthenticationService _authenticationService;
+		private readonly WalletService _walletService;
 
-		public SolanaFederation(AuthenticationService authenticationService)
+		public SolanaFederation(AuthenticationService authenticationService, WalletService walletService)
 		{
 			_authenticationService = authenticationService;
+			_walletService = walletService;
 		}
 
 		[ConfigureServices]
 		public static void ConfigureSecond(IServiceBuilder serviceBuilder)
 		{
 			serviceBuilder.AddSingleton(_ => new AuthenticationService());
+			serviceBuilder.AddSingleton(_ => new WalletService(SOLANA_CLUSTER));
 		}
 
 		[ClientCallable("authenticate")]
