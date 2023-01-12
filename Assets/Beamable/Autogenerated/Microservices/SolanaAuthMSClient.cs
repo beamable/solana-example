@@ -27,7 +27,7 @@ namespace Beamable.Server.Clients
         /// Call the Authenticate method on the SolanaAuthMS microservice
         /// <see cref="Beamable.Microservices.SolanaAuthMS.Authenticate"/>
         /// </summary>
-        public Beamable.Common.Promise<ExternalAuthenticationResponse> Authenticate(string token, string challenge, string solution)
+        public Beamable.Common.Promise<Beamable.Common.Api.Auth.ExternalAuthenticationResponse> Authenticate(string token, string challenge, string solution)
         {
             string serialized_token = this.SerializeArgument<string>(token);
             string serialized_challenge = this.SerializeArgument<string>(challenge);
@@ -36,7 +36,7 @@ namespace Beamable.Server.Clients
                     serialized_token,
                     serialized_challenge,
                     serialized_solution};
-            return this.Request<ExternalAuthenticationResponse>("SolanaAuthMS", "Solana/authenticate", serializedFields);
+            return this.Request<Beamable.Common.Api.Auth.ExternalAuthenticationResponse>("SolanaAuthMS", "Solana/authenticate", serializedFields);
         }
     }
     
