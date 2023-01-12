@@ -2,6 +2,7 @@ using Assets.Beamable.Microservices.SolanaFederation.Exceptions;
 using Assets.Beamable.Microservices.SolanaFederation.Services;
 using Beamable.Common;
 using Beamable.Server;
+using Beamable.Common.Api.Auth;
 using Solana.Unity.Rpc;
 using System;
 
