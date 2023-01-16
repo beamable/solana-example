@@ -1,6 +1,6 @@
 ﻿using Assets.Beamable.Microservices.SolanaFederation.Exceptions;
 using Beamable.Common;
-using Solana.Unity.Wallet;
+using Solnet.Wallet;
 using System;
 using System.Text;
 
@@ -8,7 +8,7 @@ namespace Assets.Beamable.Microservices.SolanaFederation.Services
 {
 	public class AuthenticationService
 	{
-		public bool IsSignatureValid(string publicKey, string challenge, string signature)
+		public static bool IsSignatureValid(string publicKey, string challenge, string signature)
 		{
 			try
 			{

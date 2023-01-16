@@ -3,32 +3,30 @@ using Assets.Beamable.Microservices.SolanaFederation.Services;
 using Beamable.Common;
 using Beamable.Server;
 using Beamable.Common.Api.Auth;
-using Solana.Unity.Rpc;
 using System;
+using Assets.Beamable.Microservices.SolanaFederation;
+using MongoDB.Driver;
+using System.Threading.Tasks;
+using Assets.Beamable.Microservices.SolanaFederation.Extensions;
+using System.Net.Http;
+using Solnet.Rpc;
+using Solnet.Wallet;
 
 namespace Beamable.Microservices
 {
 	[Microservice("SolanaFederation")]
 	public class SolanaFederation : Microservice
 	{
-		private const Cluster SOLANA_CLUSTER = Cluster.DevNet;
-		private const int AUTHENTICATION_CHALLENGE_TTL_SEC = 600;
+		private readonly IRpcClient _rpcClient;
+		private Lazy<Task<Wallet>> _cachedRealmWallet => new Lazy<Task<Wallet>>(async () => await WalletService.GetRealmWallet(await GetDb()));
 
-		private readonly AuthenticationService _authenticationService;
-		private readonly WalletService _walletService;
-
-		public SolanaFederation(AuthenticationService authenticationService, WalletService walletService)
+		public SolanaFederation()
 		{
-			_authenticationService = authenticationService;
-			_walletService = walletService;
+			BeamableLogger.Log($"Fetching RPC client for {Configuration.SolanaCluster}");
+			_rpcClient = ClientFactory.GetClient(Configuration.SolanaCluster, null, null, null);
 		}
 
-		[ConfigureServices]
-		public static void ConfigureSecond(IServiceBuilder serviceBuilder)
-		{
-			serviceBuilder.AddSingleton(_ => new AuthenticationService());
-			serviceBuilder.AddSingleton(_ => new WalletService(SOLANA_CLUSTER));
-		}
+		private async Task<IMongoDatabase> GetDb() => await Storage.GetDatabase<SolanaStorage>();
 
 		[ClientCallable("authenticate")]
 		public ExternalAuthenticationResponse Authenticate(string token, string challenge, string solution)
@@ -42,7 +40,7 @@ namespace Beamable.Microservices
 			if (!string.IsNullOrEmpty(challenge) && !string.IsNullOrEmpty(solution))
 			{
 				// Verify the solution
-				if (_authenticationService.IsSignatureValid(token, challenge, solution))
+				if (AuthenticationService.IsSignatureValid(token, challenge, solution))
 				{
 					// User identity confirmed
 					return new ExternalAuthenticationResponse { user_id = token };
@@ -57,8 +55,25 @@ namespace Beamable.Microservices
 			else
 			{
 				// Generate a challenge
-				return new ExternalAuthenticationResponse { challenge = Guid.NewGuid().ToString(), challenge_ttl = AUTHENTICATION_CHALLENGE_TTL_SEC };
+				return new ExternalAuthenticationResponse { challenge = Guid.NewGuid().ToString(), challenge_ttl = Configuration.AuthenticationChallengeTtlSec };
 			}
+		}
+
+		[ClientCallable("account/balance")]
+		public async Task<ulong> GetBalance(string publicKey)
+		{
+			var accountInfoResponse = await _rpcClient.GetAccountInfoAsync(publicKey);
+			accountInfoResponse.ThrowIfError();
+			return accountInfoResponse.Result.Value.Lamports;
+		}
+
+		[ClientCallable("account/realm/balance")]
+		public async Task<ulong> GetRealmAccountBalance()
+		{
+			BeamableLogger.Log("Fetching realm wallet");
+			var realmWallet = await _cachedRealmWallet.Value;
+			BeamableLogger.Log("Realm wallet is {r}", realmWallet.Account.PublicKey.Key);
+			return await GetBalance(realmWallet.Account.PublicKey.Key);
 		}
 	}
 }
