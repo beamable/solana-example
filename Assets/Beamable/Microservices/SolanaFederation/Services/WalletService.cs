@@ -39,7 +39,7 @@ namespace Assets.Beamable.Microservices.SolanaFederation.Services
 				BeamableLogger.Log("Created realm wallet '{RealmWalletName}' {RealmWallet}", Configuration.RealmWalletName, newWallet.Account.PublicKey.Key);
 			}
 
-			return newWallet;
+			return wallet.DecryptWallet();
 		}
 	}
 }
