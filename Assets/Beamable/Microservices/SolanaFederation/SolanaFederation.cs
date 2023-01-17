@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Common.Api.Auth;
@@ -6,12 +8,20 @@ using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Exceptions;
 using Beamable.Microservices.SolanaFederation.Extensions;
 using Beamable.Microservices.SolanaFederation.Services;
+using Beamable.Microservices.SolanaFederation.Storage;
+using Beamable.Microservices.SolanaFederation.Storage.Models;
 using Beamable.Server;
 using MongoDB.Driver;
-using Solnet.Rpc;
+using Solnet.Programs;
+using Solnet.Rpc.Builders;
+using Solnet.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation
 {
+    /*
+     * TODO:
+     * - Custom thread-safe RPC client rate limiting and make it configurable
+     */
     [Microservice("SolanaFederation")]
     public class SolanaFederation : Microservice
     {
@@ -78,7 +88,7 @@ namespace Beamable.Microservices.SolanaFederation
         public async Task<InventoryProxyState> StartInventoryTransaction(InventoryProxyUpdateRequest request)
         {
             /*
-             * FLOW v0.1 - Currency implementation:
+             * FLOW v0.1 - SFT implementation:
              *  - fetch the realm wallet
              *  - fetch players account manifest              
              *  - request validation (only handle currency increase)
@@ -86,11 +96,88 @@ namespace Beamable.Microservices.SolanaFederation
              *  - create a single mint&transfer transaction 
              *  - return players new manifest
              */
+            var playerAccountTokensResponse =
+                await SolanaRpc.Client.GetTokenAccountsByOwnerAsync(request.id,
+                    tokenProgramId: TokenProgram.ProgramIdKey);
+            playerAccountTokensResponse.ThrowIfError();
 
-            await Task.Yield();
-            return null;
+            var db = await GetDb();
+
+            var mints = await MintCollection.GetAll(db);
+
+            var newCurrency = request
+                .currencies
+                .Keys
+                .Except(mints.ContentIds)
+                .ToList();
+
+            // Mint missing currency tokens
+            foreach (var newCurrencyForMint in newCurrency)
+            {
+                var mint = await TokenService.GetOrCreateMint(db, newCurrencyForMint);
+                mints.AddMint(new Mint { ContentId = newCurrencyForMint, PublicKey = mint.PublicKey });
+            }
+
+            var playerState = new PlayerTokenState(mints, playerAccountTokensResponse.Result.Value);
+
+            var blockHashResult = await SolanaRpc.Client.GetLatestBlockHashAsync();
+            var blockHash = blockHashResult.Result.Value.Blockhash;
+
+            var realmWallet = await WalletService.GetRealmWallet(db);
+
+            var transactionBuilder = new TransactionBuilder()
+                .SetFeePayer(realmWallet.Account.PublicKey)
+                .SetRecentBlockHash(blockHash);
+
+            var playerKey = new PublicKey(request.id);
+
+            var hasInstructions = false;
+            foreach (var currency in request.currencies)
+            {
+                var currencyMint = new PublicKey(mints.GetByContent(currency.Key));
+                var currentAmount = playerState.GetTokenAmount(currencyMint);
+
+                var delta = currency.Value - currentAmount;
+                if (delta > 0)
+                {
+                    var needsTokenAccount = !playerState.ContainsToken(currencyMint);
+                    if (needsTokenAccount)
+                    {
+                        transactionBuilder.AddInstruction(
+                            AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
+                                realmWallet.Account.PublicKey,
+                                playerKey,
+                                currencyMint
+                            )
+                        );
+                    }
+                    transactionBuilder.AddInstruction(
+                        TokenProgram.MintTo(
+                            currencyMint,
+                            AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(playerKey, currencyMint),
+                            (ulong)delta,
+                            realmWallet.Account.PublicKey
+                        )
+                    );
+
+                    hasInstructions = true;
+                }
+                else if (delta < 0)
+                {
+                    BeamableLogger.LogWarning("Currency {ContentId} has an amount decrease. Ignoring.", currency.Key);
+                }
+            }
+
+            if (hasInstructions)
+            {
+                var transaction = transactionBuilder.Build(new List<Account> { realmWallet.Account });
+                var transactionResponse = await SolanaRpc.Client.SendTransactionAsync(transaction);
+                transactionResponse.ThrowIfError();
+            }
+
+            return playerState.ToProxyState();
         }
-        
+
         // Not used currently
         [ClientCallable("inventory/transaction/end")]
         public InventoryProxyState EndInventoryTransaction(InventoryProxyUpdateRequest request)

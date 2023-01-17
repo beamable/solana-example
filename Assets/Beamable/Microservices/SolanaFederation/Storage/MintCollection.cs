@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Beamable.Microservices.SolanaFederation.Models;
 using Beamable.Microservices.SolanaFederation.Storage.Models;
 using MongoDB.Driver;
 
@@ -32,12 +33,13 @@ namespace Beamable.Microservices.SolanaFederation.Storage
                 .FirstOrDefaultAsync();
         }
 
-        public static async Task<IEnumerable<Mint>> GetAll(IMongoDatabase db)
+        public static async Task<Mints> GetAll(IMongoDatabase db)
         {
             var collection = await Get(db);
-            return await collection
+            var mints = await collection
                 .Find(x => true)
                 .ToListAsync();
+            return new Mints(mints);
         }
 
         public static async Task Insert(IMongoDatabase db, Mint mint)
