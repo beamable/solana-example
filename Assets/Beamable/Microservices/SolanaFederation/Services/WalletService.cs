@@ -1,24 +1,20 @@
-﻿using Assets.Beamable.Microservices.SolanaFederation.Extensions;
-using Assets.Beamable.Microservices.SolanaFederation.Storage;
+﻿using System.Threading.Tasks;
 using Beamable.Common;
+using Beamable.Microservices.SolanaFederation.Extensions;
+using Beamable.Microservices.SolanaFederation.Storage;
 using MongoDB.Driver;
 using Solnet.Wallet;
 using Solnet.Wallet.Bip39;
-using System.Threading.Tasks;
 
-namespace Assets.Beamable.Microservices.SolanaFederation.Services
+namespace Beamable.Microservices.SolanaFederation.Services
 {
 	public class WalletService
 	{
-		private static Wallet cachedWallet = null;
+		private static Wallet _cachedWallet = null;
 
 		public static async ValueTask<Wallet> GetRealmWallet(IMongoDatabase db)
 		{
-			if (cachedWallet is null)
-			{
-				cachedWallet = await ComputeRealmWallet(db);
-			}
-			return cachedWallet;
+			return _cachedWallet ??= await ComputeRealmWallet(db);
 		}
 
 		private static async Task<Wallet> ComputeRealmWallet(IMongoDatabase db)

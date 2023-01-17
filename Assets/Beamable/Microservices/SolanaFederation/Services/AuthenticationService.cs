@@ -1,27 +1,27 @@
-﻿using Assets.Beamable.Microservices.SolanaFederation.Exceptions;
-using Beamable.Common;
-using Solnet.Wallet;
-using System;
+﻿using System;
 using System.Text;
+using Beamable.Common;
+using Beamable.Microservices.SolanaFederation.Exceptions;
+using Solnet.Wallet;
 
-namespace Assets.Beamable.Microservices.SolanaFederation.Services
+namespace Beamable.Microservices.SolanaFederation.Services
 {
-	public class AuthenticationService
-	{
-		public static bool IsSignatureValid(string publicKey, string challenge, string signature)
-		{
-			try
-			{
-				byte[] challengeBytes = Encoding.UTF8.GetBytes(challenge);
-				byte[] signatureBytes = Convert.FromBase64String(signature);
+    public class AuthenticationService
+    {
+        public static bool IsSignatureValid(string publicKey, string challenge, string signature)
+        {
+            try
+            {
+                var challengeBytes = Encoding.UTF8.GetBytes(challenge);
+                var signatureBytes = Convert.FromBase64String(signature);
 
-				return new PublicKey(publicKey).Verify(challengeBytes, signatureBytes);
-			}
-			catch (Exception ex)
-			{
-				BeamableLogger.LogError(ex);
-				throw new UnauthorizedException();
-			}
-		}
-	}
+                return new PublicKey(publicKey).Verify(challengeBytes, signatureBytes);
+            }
+            catch (Exception ex)
+            {
+                BeamableLogger.LogError(ex);
+                throw new UnauthorizedException();
+            }
+        }
+    }
 }

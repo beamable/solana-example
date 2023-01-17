@@ -1,13 +1,13 @@
-﻿using Beamable.Server;
-using System.Net;
+﻿using System.Net;
+using Beamable.Server;
 
-namespace Assets.Beamable.Microservices.SolanaFederation.Exceptions
+namespace Beamable.Microservices.SolanaFederation.Exceptions
 {
-	class UnauthorizedException : MicroserviceException
+    class UnauthorizedException : MicroserviceException
 
-	{
-		public UnauthorizedException() : base((int)HttpStatusCode.Unauthorized, "Unauthorized", "")
-		{
-		}
-	}
+    {
+        public UnauthorizedException() : base((int)HttpStatusCode.Unauthorized, "Unauthorized", "")
+        {
+        }
+    }
 }

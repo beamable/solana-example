@@ -2,11 +2,11 @@
 using Solnet.KeyStore;
 using System;
 
-namespace Assets.Beamable.Microservices.SolanaFederation.Storage.Models
+namespace Beamable.Microservices.SolanaFederation.Storage.Models
 {
 	public class Valut
 	{
-		private static SecretKeyStoreService keystoreService = new SecretKeyStoreService();
+		private static readonly SecretKeyStoreService KeystoreService = new SecretKeyStoreService();
 
 		public ObjectId _id { get; set; } = ObjectId.GenerateNewId();
 		public string Name { get; set; }
@@ -15,7 +15,7 @@ namespace Assets.Beamable.Microservices.SolanaFederation.Storage.Models
 
 		public byte[] DecryptValue()
 		{
-			return keystoreService.DecryptKeyStoreFromJson(Configuration.RealmSecret, Value);
+			return KeystoreService.DecryptKeyStoreFromJson(Configuration.RealmSecret, Value);
 		}
 	}
 }

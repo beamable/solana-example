@@ -1,26 +1,26 @@
-﻿using Assets.Beamable.Microservices.SolanaFederation.Storage.Models;
+﻿using System.Threading.Tasks;
+using Beamable.Microservices.SolanaFederation.Storage.Models;
 using MongoDB.Driver;
-using System.Threading.Tasks;
 
-namespace Assets.Beamable.Microservices.SolanaFederation.Storage
+namespace Beamable.Microservices.SolanaFederation.Storage
 {
 	public static class ValutCollection
 	{
-		private static IMongoCollection<Valut> collection = null;
+		private static IMongoCollection<Valut> _collection = null;
 
 		private static async ValueTask<IMongoCollection<Valut>> Get(IMongoDatabase db)
 		{
-			if (collection is null)
+			if (_collection is null)
 			{
-				collection = db.GetCollection<Valut>("valut");
-				await collection.Indexes.CreateOneAsync(
+				_collection = db.GetCollection<Valut>("valut");
+				await _collection.Indexes.CreateOneAsync(
 						new CreateIndexModel<Valut>(
 							Builders<Valut>.IndexKeys.Ascending(x => x.Name),
 								new CreateIndexOptions() { Unique = true }
 						)
 					);
 			}
-			return collection;
+			return _collection;
 		}
 
 		public static async Task<Valut> GetByName(IMongoDatabase db, string name)

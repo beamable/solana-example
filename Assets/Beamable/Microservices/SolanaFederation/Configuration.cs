@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Assets.Beamable.Microservices.SolanaFederation
+namespace Beamable.Microservices.SolanaFederation
 {
-	static class Configuration
-	{
-		public const string SolanaCluster = "https://api.devnet.solana.com";
-		public const int AuthenticationChallengeTtlSec = 600;
-		public const string RealmWalletName = "default";
+    static class Configuration
+    {
+        public const string SolanaCluster = "https://api.devnet.solana.com";
+        public const int AuthenticationChallengeTtlSec = 600;
+        public const string RealmWalletName = "default";
 
-		public static readonly string RealmSecret = Environment.GetEnvironmentVariable("SECRET");
-	}
+        public static readonly string RealmSecret = Environment.GetEnvironmentVariable("SECRET");
+    }
 }
