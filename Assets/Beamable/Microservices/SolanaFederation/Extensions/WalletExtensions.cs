@@ -11,8 +11,8 @@ namespace Beamable.Microservices.SolanaFederation.Extensions
         public static string EncryptMnemonic(this Wallet wallet)
         {
             var keystoreService = new SecretKeyStoreService();
-            var stringByteArray = Encoding.UTF8.GetBytes(wallet.Mnemonic.ToString());
-            return keystoreService.EncryptAndGenerateDefaultKeyStoreAsJson(Configuration.RealmSecret, stringByteArray,
+            var mnemonicStringByteArray = Encoding.UTF8.GetBytes(wallet.Mnemonic.ToString());
+            return keystoreService.EncryptAndGenerateDefaultKeyStoreAsJson(Configuration.RealmSecret, mnemonicStringByteArray,
                 wallet.Account.PublicKey.Key);
         }
 
@@ -20,9 +20,8 @@ namespace Beamable.Microservices.SolanaFederation.Extensions
         {
             return new Valut
             {
-                Created = DateTime.Now,
-                Value = wallet.EncryptMnemonic(),
-                Name = Configuration.RealmWalletName
+                Name = Configuration.RealmWalletName,
+                Value = wallet.EncryptMnemonic()
             };
         }
     }

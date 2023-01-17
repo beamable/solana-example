@@ -4,7 +4,7 @@ using System;
 
 namespace Beamable.Microservices.SolanaFederation.Storage.Models
 {
-	public class Valut
+	public record Valut
 	{
 		private static readonly SecretKeyStoreService KeystoreService = new SecretKeyStoreService();
 

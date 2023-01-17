@@ -79,10 +79,11 @@ namespace Beamable.Microservices.SolanaFederation
         {
             /*
              * FLOW v0.1 - Currency implementation:
-             *  - fetch the realm wallet with manifest (caching?)
+             *  - fetch the realm wallet
              *  - fetch players account manifest              
              *  - request validation (only handle currency increase)
-             *  - create a transaction
+             *  - get or create mints
+             *  - create a single mint&transfer transaction 
              *  - return players new manifest
              */
 

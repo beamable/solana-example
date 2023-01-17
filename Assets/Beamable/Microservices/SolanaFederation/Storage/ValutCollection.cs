@@ -6,7 +6,7 @@ namespace Beamable.Microservices.SolanaFederation.Storage
 {
 	public static class ValutCollection
 	{
-		private static IMongoCollection<Valut> _collection = null;
+		private static IMongoCollection<Valut> _collection;
 
 		private static async ValueTask<IMongoCollection<Valut>> Get(IMongoDatabase db)
 		{
