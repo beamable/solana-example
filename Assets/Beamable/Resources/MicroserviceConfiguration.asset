@@ -12,10 +12,301 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a96b3852b93843ef94fc3401214399e, type: 3}
   m_Name: MicroserviceConfiguration
   m_EditorClassIdentifier: 
-  Microservices: []
-  StorageObjects: []
-  ServiceCodeHandlesOnLastDomainReload: []
-  LastBuiltDockerImagesCodeHandles: []
+  Microservices:
+  - ServiceName: SolanaAuthMS
+    Enabled: 0
+    Archived: 0
+    TemplateId: small
+    CustomDockerFileStrings: 
+    IncludeDebugTools: 0
+    DebugData:
+      Username: root
+      Password: Password!
+      SshPort: 11100
+    LastBuiltCheckSum: 
+    RobotId: 
+  - ServiceName: SolanaTest
+    Enabled: 0
+    Archived: 1
+    TemplateId: small
+    CustomDockerFileStrings: 
+    IncludeDebugTools: 0
+    DebugData:
+      Username: root
+      Password: Password!
+      SshPort: 11101
+    LastBuiltCheckSum: 
+    RobotId: 
+  - ServiceName: NewSolana
+    Enabled: 0
+    Archived: 1
+    TemplateId: small
+    CustomDockerFileStrings: 
+    IncludeDebugTools: 0
+    DebugData:
+      Username: root
+      Password: Password!
+      SshPort: 11102
+    LastBuiltCheckSum: 
+    RobotId: 
+  - ServiceName: SolanaFederation
+    Enabled: 1
+    Archived: 0
+    TemplateId: small
+    CustomDockerFileStrings: 
+    IncludeDebugTools: 1
+    DebugData:
+      Username: root
+      Password: Password!
+      SshPort: 11103
+    LastBuiltCheckSum: 
+    RobotId: 
+  StorageObjects:
+  - StorageName: SolStorage
+    StorageType: mongov1
+    Enabled: 0
+    Archived: 1
+    TemplateId: small
+    LocalDataPort: 12100
+    LocalUIPort: 13100
+    LocalInitUser: beamable
+    LocalInitPass: beamable
+  - StorageName: SolFinal
+    StorageType: mongov1
+    Enabled: 0
+    Archived: 1
+    TemplateId: small
+    LocalDataPort: 12101
+    LocalUIPort: 13101
+    LocalInitUser: beamable
+    LocalInitPass: beamable
+  - StorageName: TestStorage
+    StorageType: mongov1
+    Enabled: 0
+    Archived: 1
+    TemplateId: small
+    LocalDataPort: 12102
+    LocalUIPort: 13102
+    LocalInitUser: beamable
+    LocalInitPass: beamable
+  - StorageName: MyNewStorage
+    StorageType: mongov1
+    Enabled: 0
+    Archived: 1
+    TemplateId: small
+    LocalDataPort: 12103
+    LocalUIPort: 13103
+    LocalInitUser: beamable
+    LocalInitPass: beamable
+  - StorageName: SolanaTestStorage
+    StorageType: mongov1
+    Enabled: 0
+    Archived: 1
+    TemplateId: small
+    LocalDataPort: 12104
+    LocalUIPort: 13104
+    LocalInitUser: beamable
+    LocalInitPass: beamable
+  - StorageName: SolanaStorage
+    StorageType: mongov1
+    Enabled: 1
+    Archived: 0
+    TemplateId: small
+    LocalDataPort: 12105
+    LocalUIPort: 13105
+    LocalInitUser: beamable
+    LocalInitPass: beamable
+  ServiceCodeHandlesOnLastDomainReload:
+  - ServiceName: SolanaAuthMS
+    CodeClass: 1
+    CodeDirectory: Assets\Beamable\Microservices\SolanaAuthMS
+    AsmDefInfo:
+      Name: Beamable.Microservice.SolanaAuthMS
+      References:
+      - Unity.Beamable.Runtime.Common
+      - Unity.Beamable.Server.Runtime
+      - Unity.Beamable.Server.Runtime.Shared
+      - Unity.Beamable
+      - Unity.Beamable.Server.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Mocks
+      - Unity.Beamable.Customer.Common
+      - Beamable.SmallerJSON
+      - Beamable.Storage.SolanaStorage
+      DllReferences:
+      - DnsClient.dll
+      - MongoDB.Bson.dll
+      - MongoDB.Driver.Core.dll
+      - MongoDB.Driver.dll
+      - MongoDB.Libmongocrypt.dll
+      - System.Runtime.CompilerServices.Unsafe.dll
+      - SharpCompress.dll
+      - BouncyCastle.Crypto.dll
+      - Chaos.NaCl.dll
+      - Solana.Unity.KeyStore.dll
+      - Solana.Unity.Programs.dll
+      - Solana.Unity.Rpc.dll
+      - Solana.Unity.Wallet.dll
+      - Newtonsoft.Json.dll
+      - System.Buffers.dll
+      Location: Assets/Beamable/Microservices/SolanaAuthMS/Beamable.Microservice.SolanaAuthMS.asmdef
+      IncludePlatforms: []
+      AutoReferenced: 0
+    Checksum: AE97FEFAE948D601655EAC4D62C183F0
+  - ServiceName: SolanaFederation
+    CodeClass: 1
+    CodeDirectory: Assets\Beamable\Microservices\SolanaFederation
+    AsmDefInfo:
+      Name: Beamable.Microservice.SolanaFederation
+      References:
+      - Unity.Beamable.Runtime.Common
+      - Unity.Beamable.Server.Runtime
+      - Unity.Beamable.Server.Runtime.Shared
+      - Unity.Beamable
+      - Beamable.SmallerJSON
+      - Unity.Beamable.Server.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Mocks
+      - Unity.Beamable.Customer.Common
+      - Beamable.Storage.SolanaStorage
+      DllReferences:
+      - DnsClient.dll
+      - MongoDB.Bson.dll
+      - MongoDB.Driver.Core.dll
+      - MongoDB.Driver.dll
+      - MongoDB.Libmongocrypt.dll
+      - System.Buffers.dll
+      - System.Runtime.CompilerServices.Unsafe.dll
+      - SharpCompress.dll
+      - BouncyCastle.Crypto.dll
+      - Chaos.NaCl.dll
+      - Solana.Unity.KeyStore.dll
+      - Solana.Unity.Programs.dll
+      - Solana.Unity.Rpc.dll
+      - Solana.Unity.Wallet.dll
+      - Newtonsoft.Json.dll
+      Location: Assets/Beamable/Microservices/SolanaFederation/Beamable.Microservice.SolanaFederation.asmdef
+      IncludePlatforms: []
+      AutoReferenced: 0
+    Checksum: C0A5D3E2FCED32B86CF771C88F957ABB
+  - ServiceName: SolanaStorage
+    CodeClass: 2
+    CodeDirectory: Assets\Beamable\StorageObjects\SolanaStorage
+    AsmDefInfo:
+      Name: Beamable.Storage.SolanaStorage
+      References:
+      - Unity.Beamable.Runtime.Common
+      - Unity.Beamable.Server.Runtime
+      - Unity.Beamable.Server.Runtime.Shared
+      - Unity.Beamable
+      - Beamable.SmallerJSON
+      - Unity.Beamable.Server.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Mocks
+      - Unity.Beamable.Customer.Common
+      DllReferences:
+      - DnsClient.dll
+      - MongoDB.Bson.dll
+      - MongoDB.Driver.Core.dll
+      - MongoDB.Driver.dll
+      - MongoDB.Libmongocrypt.dll
+      - System.Buffers.dll
+      - System.Runtime.CompilerServices.Unsafe.dll
+      - SharpCompress.dll
+      Location: Assets/Beamable/StorageObjects/SolanaStorage/Beamable.Storage.SolanaStorage.asmdef
+      IncludePlatforms: []
+      AutoReferenced: 0
+    Checksum: 6154C559663B04C2CEFEE7EFD99334F2
+  - ServiceName: Unity.Beamable.Customer.Common
+    CodeClass: 3
+    CodeDirectory: Assets\Beamable\Common
+    AsmDefInfo:
+      Name: Unity.Beamable.Customer.Common
+      References:
+      - Unity.Beamable.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Mocks
+      - Beamable.SmallerJSON
+      DllReferences: []
+      Location: Assets/Beamable/Common/Unity.Beamable.Customer.Common.asmdef
+      IncludePlatforms: []
+      AutoReferenced: 0
+    Checksum: 8FBE664D54C0DE7143FDCD8415D91722
+  LastBuiltDockerImagesCodeHandles:
+  - ServiceName: SolanaFederation
+    CodeClass: 1
+    CodeDirectory: Assets\Beamable\Microservices\SolanaFederation
+    AsmDefInfo:
+      Name: Beamable.Microservice.SolanaFederation
+      References:
+      - Unity.Beamable.Runtime.Common
+      - Unity.Beamable.Server.Runtime
+      - Unity.Beamable.Server.Runtime.Shared
+      - Unity.Beamable
+      - Beamable.SmallerJSON
+      - Unity.Beamable.Server.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Mocks
+      - Unity.Beamable.Customer.Common
+      - Beamable.Storage.SolanaStorage
+      DllReferences:
+      - DnsClient.dll
+      - MongoDB.Bson.dll
+      - MongoDB.Driver.Core.dll
+      - MongoDB.Driver.dll
+      - MongoDB.Libmongocrypt.dll
+      - System.Buffers.dll
+      - System.Runtime.CompilerServices.Unsafe.dll
+      - SharpCompress.dll
+      - BouncyCastle.Crypto.dll
+      - Chaos.NaCl.dll
+      - Solana.Unity.KeyStore.dll
+      - Solana.Unity.Programs.dll
+      - Solana.Unity.Rpc.dll
+      - Solana.Unity.Wallet.dll
+      - Newtonsoft.Json.dll
+      Location: Assets/Beamable/Microservices/SolanaFederation/Beamable.Microservice.SolanaFederation.asmdef
+      IncludePlatforms: []
+      AutoReferenced: 0
+    Checksum: C0A5D3E2FCED32B86CF771C88F957ABB
+  - ServiceName: Unity.Beamable.Customer.Common
+    CodeClass: 3
+    CodeDirectory: Assets\Beamable\Common
+    AsmDefInfo:
+      Name: Unity.Beamable.Customer.Common
+      References:
+      - Unity.Beamable.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Mocks
+      - Beamable.SmallerJSON
+      DllReferences: []
+      Location: Assets/Beamable/Common/Unity.Beamable.Customer.Common.asmdef
+      IncludePlatforms: []
+      AutoReferenced: 0
+    Checksum: 8FBE664D54C0DE7143FDCD8415D91722
+  - ServiceName: SolanaStorage
+    CodeClass: 2
+    CodeDirectory: Assets\Beamable\StorageObjects\SolanaStorage
+    AsmDefInfo:
+      Name: Beamable.Storage.SolanaStorage
+      References:
+      - Unity.Beamable.Runtime.Common
+      - Unity.Beamable.Server.Runtime
+      - Unity.Beamable.Server.Runtime.Shared
+      - Unity.Beamable
+      - Beamable.SmallerJSON
+      - Unity.Beamable.Server.Runtime.Common
+      - Unity.Beamable.Server.Runtime.Mocks
+      - Unity.Beamable.Customer.Common
+      DllReferences:
+      - DnsClient.dll
+      - MongoDB.Bson.dll
+      - MongoDB.Driver.Core.dll
+      - MongoDB.Driver.dll
+      - MongoDB.Libmongocrypt.dll
+      - System.Buffers.dll
+      - System.Runtime.CompilerServices.Unsafe.dll
+      - SharpCompress.dll
+      Location: Assets/Beamable/StorageObjects/SolanaStorage/Beamable.Storage.SolanaStorage.asmdef
+      IncludePlatforms: []
+      AutoReferenced: 0
+    Checksum: 6154C559663B04C2CEFEE7EFD99334F2
   CustomContainerPrefix: 
   AutoReferenceContent: 0
   AutoBuildCommonAssembly: 1
