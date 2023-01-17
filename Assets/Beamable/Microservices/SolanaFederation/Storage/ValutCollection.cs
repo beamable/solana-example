@@ -16,7 +16,7 @@ namespace Beamable.Microservices.SolanaFederation.Storage
 				await _collection.Indexes.CreateOneAsync(
 						new CreateIndexModel<Valut>(
 							Builders<Valut>.IndexKeys.Ascending(x => x.Name),
-								new CreateIndexOptions() { Unique = true }
+								new CreateIndexOptions { Unique = true }
 						)
 					);
 			}

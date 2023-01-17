@@ -6,7 +6,7 @@ namespace Beamable.Microservices.SolanaFederation.Extensions
 {
     static class RequestResultExtensions
     {
-        public static void ThrowIfError<T>(this RequestResult<ResponseValue<T>> requestResult)
+        public static void ThrowIfError<T>(this RequestResult<T> requestResult)
         {
             if (!requestResult.WasSuccessful)
             {

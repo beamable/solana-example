@@ -35,7 +35,8 @@
         "Solnet.KeyStore.dll",
         "Solnet.Extensions.dll",
         "Solnet.Rpc.dll",
-        "Microsoft.Extensions.Logging.Abstractions.dll"
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "Solnet.Metaplex.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [],

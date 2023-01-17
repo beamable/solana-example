@@ -27,29 +27,25 @@ namespace Beamable.Microservices.SolanaFederation.Services
 			{
 				return maybeExistingWallet.ToWallet();
 			}
-			else
-			{
-				BeamableLogger.Log("Can't find a persisted realm wallet. Creating a new wallet...");
-				var newMnemonic = new Mnemonic(WordList.English, WordCount.TwentyFour);
-				var newWallet = new Wallet(newMnemonic);
-				var newPersistedWallet = newWallet.ToValut();
 
-				var insertSuccessful = await ValutCollection.TryInsert(db, newPersistedWallet);
-				if (insertSuccessful)
+			BeamableLogger.Log("Can't find a persisted realm wallet. Creating a new wallet...");
+			var newMnemonic = new Mnemonic(WordList.English, WordCount.TwentyFour);
+			var newWallet = new Wallet(newMnemonic);
+			var newPersistedWallet = newWallet.ToValut();
+
+			var insertSuccessful = await ValutCollection.TryInsert(db, newPersistedWallet);
+			if (insertSuccessful)
+			{
+				BeamableLogger.Log("Created realm wallet '{RealmWalletName}' {RealmWallet}", Configuration.RealmWalletName, newWallet.Account.PublicKey.Key);
+				if (Configuration.AirDropAmount > 0)
 				{
-					BeamableLogger.Log("Created realm wallet '{RealmWalletName}' {RealmWallet}", Configuration.RealmWalletName, newWallet.Account.PublicKey.Key);
-					if (Configuration.AirDropAmount > 0)
-					{
-						await Airdrop(newWallet.Account.PublicKey, Configuration.AirDropAmount);
-					}
-					return newWallet;
+					await Airdrop(newWallet.Account.PublicKey, Configuration.AirDropAmount);
 				}
-				else
-				{
-					BeamableLogger.LogWarning("Wallet already created, fetching again");
-					return await ComputeRealmWallet(db);
-				}
+				return newWallet;
 			}
+
+			BeamableLogger.LogWarning("Wallet already created, fetching again");
+			return await ComputeRealmWallet(db);
 		}
 
 		private static async Task Airdrop(string publicKey, int amount)

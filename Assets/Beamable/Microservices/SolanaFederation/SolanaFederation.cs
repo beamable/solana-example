@@ -15,12 +15,8 @@ namespace Beamable.Microservices.SolanaFederation
     [Microservice("SolanaFederation")]
     public class SolanaFederation : Microservice
     {
-        private readonly IRpcClient _rpcClient;
-
         public SolanaFederation()
         {
-            BeamableLogger.Log($"Fetching RPC client for {Configuration.SolanaCluster}");
-            _rpcClient = ClientFactory.GetClient(Configuration.SolanaCluster, null, null, null);
         }
 
         private async Task<IMongoDatabase> GetDb() => await Storage.GetDatabase<SolanaStorage>();
@@ -64,7 +60,7 @@ namespace Beamable.Microservices.SolanaFederation
         [ClientCallable("account/balance")]
         public async Task<ulong> GetBalance(string publicKey)
         {
-            var accountInfoResponse = await _rpcClient.GetAccountInfoAsync(publicKey);
+            var accountInfoResponse = await SolanaRpc.Client.GetAccountInfoAsync(publicKey);
             accountInfoResponse.ThrowIfError();
             return accountInfoResponse.Result.Value.Lamports;
         }
@@ -87,8 +83,6 @@ namespace Beamable.Microservices.SolanaFederation
              *  - fetch players account manifest              
              *  - request validation (only handle currency increase)
              *  - create a transaction
-             *    - mint to realm account
-             *    - transfer to players account
              *  - return players new manifest
              */
 
@@ -96,11 +90,11 @@ namespace Beamable.Microservices.SolanaFederation
             return null;
         }
         
+        // Not used currently
         [ClientCallable("inventory/transaction/end")]
         public InventoryProxyState EndInventoryTransaction(InventoryProxyUpdateRequest request)
         {
-            // not used currently
-            return null;
+            return new InventoryProxyState();
         }
     }
 }
