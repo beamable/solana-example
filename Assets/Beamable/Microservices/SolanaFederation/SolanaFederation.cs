@@ -74,13 +74,24 @@ namespace Beamable.Microservices.SolanaFederation
         {
             BeamableLogger.Log("Fetching realm wallet");
             var realmWallet = await WalletService.GetRealmWallet(await GetDb());
-            BeamableLogger.Log("Realm wallet is {r}", realmWallet.Account.PublicKey.Key);
+            BeamableLogger.Log("Realm wallet is {RealmWallet}", realmWallet.Account.PublicKey.Key);
             return await GetBalance(realmWallet.Account.PublicKey.Key);
         }
 
         [ClientCallable("inventory/transaction/start")]
         public async Task<InventoryProxyState> StartInventoryTransaction(InventoryProxyUpdateRequest request)
         {
+            /*
+             * FLOW v0.1 - Currency implementation:
+             *  - fetch the realm wallet with manifest (caching?)
+             *  - fetch players account manifest              
+             *  - request validation (only handle currency increase)
+             *  - create a transaction
+             *    - mint to realm account
+             *    - transfer to players account
+             *  - return players new manifest
+             */
+
             await Task.Yield();
             return null;
         }
