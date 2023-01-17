@@ -1,5 +1,5 @@
 ﻿using Assets.Beamable.Microservices.SolanaFederation.Extensions;
-using Assets.Beamable.Microservices.SolanaFederation.Models;
+using Assets.Beamable.Microservices.SolanaFederation.Storage;
 using Beamable.Common;
 using MongoDB.Driver;
 using Solnet.Wallet;
@@ -10,36 +10,43 @@ namespace Assets.Beamable.Microservices.SolanaFederation.Services
 {
 	public class WalletService
 	{
-		public static async Task<Wallet> GetRealmWallet(IMongoDatabase db)
+		private static Wallet cachedWallet = null;
+
+		public static async ValueTask<Wallet> GetRealmWallet(IMongoDatabase db)
 		{
-			var newMnemonic = new Mnemonic(WordList.English, WordCount.TwentyFour);
-			var newWallet = new Wallet(newMnemonic);
-			var newPersistedWallet = newWallet.ToPersistedWallet();
-
-			var collection = db.GetCollection<PersistedWallet>(Storage.Collections.Valut);
-
-			var filter = Builders<PersistedWallet>.Filter.Eq(x => x.Name, Configuration.RealmWalletName);
-
-			var update = Builders<PersistedWallet>.Update
-				.SetOnInsert(x => x.Name, newPersistedWallet.Name)
-				.SetOnInsert(x => x.Created, newPersistedWallet.Created)
-				.SetOnInsert(x => x.KeyStore, newPersistedWallet.KeyStore);
-
-			var wallet = await collection.FindOneAndUpdateAsync(
-				filter,
-				update,
-				new FindOneAndUpdateOptions<PersistedWallet>
-				{
-					IsUpsert = true,
-					ReturnDocument = ReturnDocument.After,
-				});
-
-			if (wallet.KeyStore == newPersistedWallet.KeyStore)
+			if (cachedWallet is null)
 			{
-				BeamableLogger.Log("Created realm wallet '{RealmWalletName}' {RealmWallet}", Configuration.RealmWalletName, newWallet.Account.PublicKey.Key);
+				cachedWallet = await ComputeRealmWallet(db);
 			}
+			return cachedWallet;
+		}
 
-			return wallet.DecryptWallet();
+		private static async Task<Wallet> ComputeRealmWallet(IMongoDatabase db)
+		{
+			var maybeExistingWallet = await ValutCollection.GetByName(db, Configuration.RealmWalletName);
+			if (maybeExistingWallet is not null)
+			{
+				return maybeExistingWallet.ToWallet();
+			}
+			else
+			{
+				BeamableLogger.Log("Can't find a persisted realm wallet. Creating a new wallet...");
+				var newMnemonic = new Mnemonic(WordList.English, WordCount.TwentyFour);
+				var newWallet = new Wallet(newMnemonic);
+				var newPersistedWallet = newWallet.ToValut();
+
+				var insertSuccessful = await ValutCollection.TryInsert(db, newPersistedWallet);
+				if (insertSuccessful)
+				{
+					BeamableLogger.Log("Created realm wallet '{RealmWalletName}' {RealmWallet}", Configuration.RealmWalletName, newWallet.Account.PublicKey.Key);
+					return newWallet;
+				}
+				else
+				{
+					BeamableLogger.LogWarning("Wallet already created, fetching again");
+					return await ComputeRealmWallet(db);
+				}
+			}
 		}
 	}
 }

@@ -1,16 +1,14 @@
+using Assets.Beamable.Microservices.SolanaFederation;
 using Assets.Beamable.Microservices.SolanaFederation.Exceptions;
+using Assets.Beamable.Microservices.SolanaFederation.Extensions;
 using Assets.Beamable.Microservices.SolanaFederation.Services;
 using Beamable.Common;
-using Beamable.Server;
 using Beamable.Common.Api.Auth;
-using System;
-using Assets.Beamable.Microservices.SolanaFederation;
+using Beamable.Server;
 using MongoDB.Driver;
-using System.Threading.Tasks;
-using Assets.Beamable.Microservices.SolanaFederation.Extensions;
-using System.Net.Http;
 using Solnet.Rpc;
-using Solnet.Wallet;
+using System;
+using System.Threading.Tasks;
 
 namespace Beamable.Microservices
 {
@@ -18,7 +16,6 @@ namespace Beamable.Microservices
 	public class SolanaFederation : Microservice
 	{
 		private readonly IRpcClient _rpcClient;
-		private Lazy<Task<Wallet>> _cachedRealmWallet => new Lazy<Task<Wallet>>(async () => await WalletService.GetRealmWallet(await GetDb()));
 
 		public SolanaFederation()
 		{
@@ -71,7 +68,7 @@ namespace Beamable.Microservices
 		public async Task<ulong> GetRealmAccountBalance()
 		{
 			BeamableLogger.Log("Fetching realm wallet");
-			var realmWallet = await _cachedRealmWallet.Value;
+			var realmWallet = await WalletService.GetRealmWallet(await GetDb());
 			BeamableLogger.Log("Realm wallet is {r}", realmWallet.Account.PublicKey.Key);
 			return await GetBalance(realmWallet.Account.PublicKey.Key);
 		}

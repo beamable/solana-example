@@ -1,4 +1,4 @@
-﻿using Assets.Beamable.Microservices.SolanaFederation.Models;
+﻿using Assets.Beamable.Microservices.SolanaFederation.Storage.Models;
 using Solnet.KeyStore;
 using Solnet.Wallet;
 using System;
@@ -15,12 +15,12 @@ namespace Assets.Beamable.Microservices.SolanaFederation.Extensions
 			return keystoreService.EncryptAndGenerateDefaultKeyStoreAsJson(Configuration.RealmSecret, stringByteArray, wallet.Account.PublicKey.Key);
 		}
 
-		public static PersistedWallet ToPersistedWallet(this Wallet wallet)
+		public static Valut ToValut(this Wallet wallet)
 		{
-			return new PersistedWallet
+			return new Valut
 			{
 				Created = DateTime.Now,
-				KeyStore = wallet.EncryptMnemonic(),
+				Value = wallet.EncryptMnemonic(),
 				Name = Configuration.RealmWalletName
 			};
 		}
