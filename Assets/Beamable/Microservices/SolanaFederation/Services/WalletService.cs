@@ -10,7 +10,7 @@ namespace Beamable.Microservices.SolanaFederation.Services
 {
 	public class WalletService
 	{
-		private static Wallet _cachedWallet = null;
+		private static Wallet _cachedWallet;
 
 		public static async ValueTask<Wallet> GetRealmWallet(IMongoDatabase db)
 		{

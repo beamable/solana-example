@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Common.Api.Auth;
+using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Exceptions;
 using Beamable.Microservices.SolanaFederation.Extensions;
 using Beamable.Microservices.SolanaFederation.Services;
@@ -75,6 +76,20 @@ namespace Beamable.Microservices.SolanaFederation
             var realmWallet = await WalletService.GetRealmWallet(await GetDb());
             BeamableLogger.Log("Realm wallet is {r}", realmWallet.Account.PublicKey.Key);
             return await GetBalance(realmWallet.Account.PublicKey.Key);
+        }
+
+        [ClientCallable("inventory/transaction/start")]
+        public async Task<InventoryProxyState> StartInventoryTransaction(InventoryProxyUpdateRequest request)
+        {
+            await Task.Yield();
+            return null;
+        }
+        
+        [ClientCallable("inventory/transaction/end")]
+        public InventoryProxyState EndInventoryTransaction(InventoryProxyUpdateRequest request)
+        {
+            // not used currently
+            return null;
         }
     }
 }
