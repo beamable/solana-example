@@ -91,6 +91,7 @@ namespace Beamable.Microservices.SolanaFederation
 
             // Ensure all contentIds are minted 
             await mints.EnsureExist(request.currencies.Keys);
+            await mints.EnsureExist(request.newItems.Select(x => x.contentId));
 
             // Compute the curren player token state
             var playerTokenState = await PlayerTokenState.Compute(request.id, mints);
