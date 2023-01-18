@@ -1,4 +1,5 @@
-﻿using Beamable.Microservices.SolanaFederation.Services;
+﻿using Beamable.Microservices.SolanaFederation.Features.Authentication;
+using Beamable.Microservices.SolanaFederation.Features.PlayerAssets;
 using Beamable.Server;
 
 namespace Beamable.Microservices.SolanaFederation
