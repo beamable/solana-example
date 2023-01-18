@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using Solnet.KeyStore;
 using Solnet.Wallet.Bip39;
 
-namespace Beamable.Microservices.SolanaFederation.Features.PlayerAssets.Storage.Models
+namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Models
 {
 	public record Valut
 	{

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Beamable.Common;
@@ -7,15 +6,12 @@ using Beamable.Common.Api.Auth;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Authentication;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
-using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage;
-using Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Models;
-using Beamable.Microservices.SolanaFederation.Features.PlayerAssets;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
+using Beamable.Microservices.SolanaFederation.Features.Transaction;
+using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Server;
 using MongoDB.Driver;
-using Solnet.Programs;
-using Solnet.Rpc.Builders;
 using Solnet.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation
@@ -88,91 +84,42 @@ namespace Beamable.Microservices.SolanaFederation
         [ClientCallable("inventory/transaction/start")]
         public async Task<InventoryProxyState> StartInventoryTransaction(InventoryProxyUpdateRequest request)
         {
-            /*
-             * FLOW v0.1 - SFT implementation:
-             *  - fetch the realm wallet
-             *  - fetch players account manifest              
-             *  - request validation (only handle currency increase)
-             *  - get or create mints
-             *  - create a single mint&transfer transaction 
-             *  - return players new manifest
-             */
-            var playerAccountTokensResponse =
-                await SolanaRpcClient.GetTokenAccountsByOwnerAsync(request.id);
-
             var db = await GetDb();
 
+            // Fetch current mints
             var mints = await MintCollection.GetAll(db);
 
-            var newCurrency = request
-                .currencies
-                .Keys
-                .Except(mints.ContentIds)
+            // Ensure all contentIds are minted 
+            await mints.EnsureExist(request.currencies.Keys);
+
+            // Compute the curren player token state
+            var playerTokenState = await PlayerTokenState.Compute(request.id, mints);
+            
+            var playerKey = new PublicKey(request.id);
+            var realmWallet = await WalletService.GetRealmWallet(db);
+            
+            // Compute new token transactions
+            var newTokens = playerTokenState
+                .GetNewTokensFromRequest(request, mints)
+                .ToList();
+            var newTransactions = newTokens
+                .Select(c => c.GetTransactions(playerKey, realmWallet.Account.PublicKey))
+                .SelectMany(x => x)
                 .ToList();
 
-            // Mint missing currency tokens
-            foreach (var newCurrencyForMint in newCurrency)
+            if (newTransactions.Any())
             {
-                var mint = await MintingService.GetOrCreateMint(db, newCurrencyForMint);
-                mints.AddMint(new Mint { ContentId = newCurrencyForMint, PublicKey = mint.PublicKey });
+                var transactionId = await TransactionExecutor.Execute(newTransactions, realmWallet);
+                BeamableLogger.Log("Transaction {TransactionId} processed successfully", transactionId);
+            }
+            else
+            {
+                BeamableLogger.LogWarning("No transaction instructions were generated for the request");
             }
 
-            var playerState = new PlayerTokenState(mints, playerAccountTokensResponse);
-
-            var blockHash = await SolanaRpcClient.GetLatestBlockHashAsync();
-
-            var realmWallet = await WalletService.GetRealmWallet(db);
-
-            var transactionBuilder = new TransactionBuilder()
-                .SetFeePayer(realmWallet.Account.PublicKey)
-                .SetRecentBlockHash(blockHash);
-
-            var playerKey = new PublicKey(request.id);
-
-            var hasInstructions = false;
-            foreach (var currency in request.currencies)
-            {
-                var currencyMint = new PublicKey(mints.GetByContent(currency.Key));
-                var currentAmount = playerState.GetTokenAmount(currencyMint);
-
-                var delta = currency.Value - currentAmount;
-                if (delta > 0)
-                {
-                    var needsTokenAccount = !playerState.ContainsToken(currencyMint);
-                    if (needsTokenAccount)
-                    {
-                        transactionBuilder.AddInstruction(
-                            AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
-                                realmWallet.Account.PublicKey,
-                                playerKey,
-                                currencyMint
-                            )
-                        );
-                    }
-                    transactionBuilder.AddInstruction(
-                        TokenProgram.MintTo(
-                            currencyMint,
-                            AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(playerKey, currencyMint),
-                            (ulong)delta,
-                            realmWallet.Account.PublicKey
-                        )
-                    );
-
-                    hasInstructions = true;
-                }
-                else if (delta < 0)
-                {
-                    BeamableLogger.LogWarning("Currency {ContentId} has an amount decrease. Ignoring.", currency.Key);
-                }
-            }
-
-            if (hasInstructions)
-            {
-                var transaction = transactionBuilder.Build(new List<Account> { realmWallet.Account });
-                var transactionId = await SolanaRpcClient.SendTransactionAsync(transaction);
-            }
-
-            return playerState.ToProxyState();
+            return playerTokenState
+                .MergeIn(newTokens)
+                .ToProxyState();
         }
 
         // Not used currently

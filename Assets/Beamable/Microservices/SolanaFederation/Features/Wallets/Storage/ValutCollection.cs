@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using Beamable.Microservices.SolanaFederation.Features.PlayerAssets.Storage.Models;
+using Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Models;
 using MongoDB.Driver;
 
-namespace Beamable.Microservices.SolanaFederation.Features.PlayerAssets.Storage
+namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage
 {
 	public static class ValutCollection
 	{

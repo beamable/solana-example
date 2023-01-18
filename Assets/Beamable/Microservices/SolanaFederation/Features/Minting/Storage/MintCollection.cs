@@ -37,7 +37,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage
             var mints = await collection
                 .Find(x => true)
                 .ToListAsync();
-            return new Mints(mints);
+            return new Mints(mints, db);
         }
 
         public static async Task Insert(IMongoDatabase db, Mint mint)

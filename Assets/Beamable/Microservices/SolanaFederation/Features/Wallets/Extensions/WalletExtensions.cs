@@ -1,8 +1,8 @@
 ﻿using System.Text;
-using Beamable.Microservices.SolanaFederation.Features.PlayerAssets.Storage.Models;
+using Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Models;
 using Solnet.KeyStore;
 
-namespace Beamable.Microservices.SolanaFederation.Features.PlayerAssets.Extensions
+namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 {
     static class WalletExtensions
     {
