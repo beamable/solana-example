@@ -117,7 +117,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 
         public bool IsCurrency() => ContentId.StartsWith("currency.", StringComparison.InvariantCultureIgnoreCase);
 
-        public IEnumerable<TransactionInstruction> GetTransactions(PublicKey ownerKey, PublicKey realmWalletKey)
+        public IEnumerable<TransactionInstruction> GetInstructions(PublicKey ownerKey, PublicKey realmWalletKey)
         {
             if (TokenAccount is null)
             {

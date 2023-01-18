@@ -23,10 +23,6 @@ namespace Beamable.Microservices.SolanaFederation
     [Microservice("SolanaFederation")]
     public class SolanaFederationService : Microservice
     {
-        public SolanaFederationService()
-        {
-        }
-
         private async Task<IMongoDatabase> GetDb() => await Storage.GetDatabase<SolanaStorage>();
 
         [ClientCallable("authenticate")]
@@ -65,22 +61,6 @@ namespace Beamable.Microservices.SolanaFederation
             }
         }
 
-        [ClientCallable("account/balance")]
-        public async Task<ulong> GetBalance(string publicKey)
-        {
-            var accountInfoResponse = await SolanaRpcClient.GetAccountInfoAsync(publicKey);
-            return accountInfoResponse.Lamports;
-        }
-
-        [ClientCallable("account/realm/balance")]
-        public async Task<ulong> GetRealmAccountBalance()
-        {
-            BeamableLogger.Log("Fetching realm wallet");
-            var realmWallet = await WalletService.GetRealmWallet(await GetDb());
-            BeamableLogger.Log("Realm wallet is {RealmWallet}", realmWallet.Account.PublicKey.Key);
-            return await GetBalance(realmWallet.Account.PublicKey.Key);
-        }
-
         [ClientCallable("inventory/transaction/start")]
         public async Task<InventoryProxyState> StartInventoryTransaction(InventoryProxyUpdateRequest request)
         {
@@ -93,7 +73,7 @@ namespace Beamable.Microservices.SolanaFederation
             await mints.EnsureExist(request.currencies.Keys);
             await mints.EnsureExist(request.newItems.Select(x => x.contentId));
 
-            // Compute the curren player token state
+            // Compute the current player token state
             var playerTokenState = await PlayerTokenState.Compute(request.id, mints);
             
             var playerKey = new PublicKey(request.id);
@@ -103,14 +83,15 @@ namespace Beamable.Microservices.SolanaFederation
             var newTokens = playerTokenState
                 .GetNewTokensFromRequest(request, mints)
                 .ToList();
-            var newTransactions = newTokens
-                .Select(c => c.GetTransactions(playerKey, realmWallet.Account.PublicKey))
+            var newInstructions = newTokens
+                .Select(c => c.GetInstructions(playerKey, realmWallet.Account.PublicKey))
                 .SelectMany(x => x)
                 .ToList();
 
-            if (newTransactions.Any())
+            if (newInstructions.Any())
             {
-                var transactionId = await TransactionExecutor.Execute(newTransactions, realmWallet);
+                // Send the transaction
+                var transactionId = await TransactionExecutor.Execute(newInstructions, realmWallet);
                 BeamableLogger.Log("Transaction {TransactionId} processed successfully", transactionId);
             }
             else
@@ -128,6 +109,20 @@ namespace Beamable.Microservices.SolanaFederation
         public InventoryProxyState EndInventoryTransaction(InventoryProxyUpdateRequest request)
         {
             return new InventoryProxyState();
+        }
+        
+        [ClientCallable("account/balance")]
+        public async Task<ulong> GetBalance(string publicKey)
+        {
+            var accountInfoResponse = await SolanaRpcClient.GetAccountInfoAsync(publicKey);
+            return accountInfoResponse.Lamports;
+        }
+
+        [ClientCallable("account/realm")]
+        public async Task<string> GetRealmAccount()
+        {
+            var realmWallet = await WalletService.GetRealmWallet(await GetDb());
+            return realmWallet.Account.PublicKey.Key;
         }
     }
 }
