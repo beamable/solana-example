@@ -11,129 +11,124 @@ using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 {
-    internal class PlayerTokenState
-    {
-        private readonly Dictionary<string, PlayerTokenInfo> _tokensByContent;
+	internal class PlayerTokenState
+	{
+		private readonly Dictionary<string, PlayerTokenInfo> _tokensByContent;
 
-        private PlayerTokenState(Dictionary<string, PlayerTokenInfo> tokensByContent)
-        {
-            _tokensByContent = tokensByContent;
-        }
+		private PlayerTokenState(Dictionary<string, PlayerTokenInfo> tokensByContent)
+		{
+			_tokensByContent = tokensByContent;
+		}
 
-        public static async Task<PlayerTokenState> Compute(string pubKey, Mints mints)
-        {
-            var tokenAccounts = await SolanaRpcClient.GetTokenAccountsByOwnerAsync(pubKey);
-            
-            var playerTokens = tokenAccounts
-                .Where(x => mints.ContainsMint(x.Account.Data.Parsed.Info.Mint))
-                .Select(x => new PlayerTokenInfo
-                {
-                    TokenAccount = new PublicKey(x.PublicKey),
-                    Mint = new PublicKey(x.Account.Data.Parsed.Info.Mint),
-                    ContentId = mints.GetByToken(x.Account.Data.Parsed.Info.Mint),
-                    Amount = x.Account.Data.Parsed.Info.TokenAmount.AmountDecimal
-                })
-                .ToDictionary(x => x.ContentId, x => x);
+		public static async Task<PlayerTokenState> Compute(string pubKey, Mints mints)
+		{
+			var tokenAccounts = await SolanaRpcClient.GetTokenAccountsByOwnerAsync(pubKey);
 
-            return new PlayerTokenState(playerTokens);
-        } 
+			var playerTokens = tokenAccounts
+				.Where(x => mints.ContainsMint(x.Account.Data.Parsed.Info.Mint))
+				.Select(x => new PlayerTokenInfo {
+					TokenAccount = new PublicKey(x.PublicKey),
+					Mint = new PublicKey(x.Account.Data.Parsed.Info.Mint),
+					ContentId = mints.GetByToken(x.Account.Data.Parsed.Info.Mint),
+					Amount = x.Account.Data.Parsed.Info.TokenAmount.AmountDecimal
+				})
+				.ToDictionary(x => x.ContentId, x => x);
 
-        public Decimal GetTokenAmount(string contentId)
-        {
-            return _tokensByContent
-                .GetValueOrDefault(contentId)
-                ?.Amount ?? 0;
-        }
+			return new PlayerTokenState(playerTokens);
+		}
 
-        public IEnumerable<PlayerTokenInfo> GetNewTokensFromRequest(InventoryProxyUpdateRequest request, Mints mints)
-        {
-            foreach (var newCurrency in request.currencies)
-            {
-                var currentAmount = GetTokenAmount(newCurrency.Key);
+		public decimal GetTokenAmount(string contentId)
+		{
+			return _tokensByContent
+				.GetValueOrDefault(contentId)
+				?.Amount ?? 0;
+		}
 
-                if (newCurrency.Value > currentAmount)
-                {
-                    var mint = mints.GetByContent(newCurrency.Key);
-                    yield return new PlayerTokenInfo
-                    {
-                        Amount = newCurrency.Value - currentAmount,
-                        ContentId = newCurrency.Key,
-                        Mint = new PublicKey(mint),
-                        TokenAccount = _tokensByContent.GetValueOrDefault(newCurrency.Key)?.TokenAccount
-                    };
-                }
-            }
-            foreach (var newItem in request.newItems)
-            {
-                var mint = mints.GetByContent(newItem.contentId);
-                yield return new PlayerTokenInfo
-                {
-                    Amount = 1,
-                    ContentId = newItem.contentId,
-                    Mint = new PublicKey(mint),
-                    TokenAccount = _tokensByContent.GetValueOrDefault(newItem.contentId)?.TokenAccount
-                };
-            }
-        }
+		public IEnumerable<PlayerTokenInfo> GetNewTokensFromRequest(InventoryProxyUpdateRequest request, Mints mints)
+		{
+			foreach (var newCurrency in request.currencies)
+			{
+				var currentAmount = GetTokenAmount(newCurrency.Key);
 
-        public PlayerTokenState MergeIn(IEnumerable<PlayerTokenInfo> tokenInfos)
-        {
-            foreach (var tokenInfo in tokenInfos)
-            {
-                if (!_tokensByContent.ContainsKey(tokenInfo.ContentId))
-                {
-                    _tokensByContent[tokenInfo.ContentId] = tokenInfo;
-                }
-                else
-                {
-                    var currentTokenInfo = _tokensByContent[tokenInfo.ContentId];
-                    if (currentTokenInfo.IsCurrency())
-                    {
-                        currentTokenInfo.Amount = tokenInfo.Amount;
-                    }
-                    else
-                    {
-                        currentTokenInfo.Amount += tokenInfo.Amount;
-                    }
-                }
-            }
-            return this;
-        }
+				if (newCurrency.Value > currentAmount)
+				{
+					var mint = mints.GetByContent(newCurrency.Key);
+					yield return new PlayerTokenInfo {
+						Amount = newCurrency.Value - currentAmount,
+						ContentId = newCurrency.Key,
+						Mint = new PublicKey(mint),
+						TokenAccount = _tokensByContent.GetValueOrDefault(newCurrency.Key)?.TokenAccount
+					};
+				}
+			}
 
-        public bool ContainsToken(string contentId) => _tokensByContent.ContainsKey(contentId);
+			foreach (var newItem in request.newItems)
+			{
+				var mint = mints.GetByContent(newItem.contentId);
+				yield return new PlayerTokenInfo {
+					Amount = 1,
+					ContentId = newItem.contentId,
+					Mint = new PublicKey(mint),
+					TokenAccount = _tokensByContent.GetValueOrDefault(newItem.contentId)?.TokenAccount
+				};
+			}
+		}
 
-        public InventoryProxyState ToProxyState()
-        {
-            return new InventoryProxyState();
-        }
-    }
+		public PlayerTokenState MergeIn(IEnumerable<PlayerTokenInfo> tokenInfos)
+		{
+			foreach (var tokenInfo in tokenInfos)
+				if (!_tokensByContent.ContainsKey(tokenInfo.ContentId))
+					_tokensByContent[tokenInfo.ContentId] = tokenInfo;
+				else
+				{
+					var currentTokenInfo = _tokensByContent[tokenInfo.ContentId];
+					if (currentTokenInfo.IsCurrency())
+						currentTokenInfo.Amount = tokenInfo.Amount;
+					else
+						currentTokenInfo.Amount += tokenInfo.Amount;
+				}
 
-    internal record PlayerTokenInfo
-    {
-        public PublicKey TokenAccount { get; set; }
-        public PublicKey Mint { get; set; }
-        public string ContentId { get; set; }
-        public decimal Amount { get; set; }
+			return this;
+		}
 
-        public bool IsCurrency() => ContentId.StartsWith("currency.", StringComparison.InvariantCultureIgnoreCase);
+		public bool ContainsToken(string contentId)
+		{
+			return _tokensByContent.ContainsKey(contentId);
+		}
 
-        public IEnumerable<TransactionInstruction> GetInstructions(PublicKey ownerKey, PublicKey realmWalletKey)
-        {
-            if (TokenAccount is null)
-            {
-                yield return AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
-                    realmWalletKey,
-                    ownerKey,
-                    Mint
-                );
-            }
+		public InventoryProxyState ToProxyState()
+		{
+			return new InventoryProxyState();
+		}
+	}
 
-            yield return TokenProgram.MintTo(
-                Mint,
-                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(ownerKey, Mint),
-                (ulong)Amount,
-                realmWalletKey
-            );
-        }
-    }
+	internal record PlayerTokenInfo
+	{
+		public PublicKey TokenAccount { get; set; }
+		public PublicKey Mint { get; set; }
+		public string ContentId { get; set; }
+		public decimal Amount { get; set; }
+
+		public bool IsCurrency()
+		{
+			return ContentId.StartsWith("currency.", StringComparison.InvariantCultureIgnoreCase);
+		}
+
+		public IEnumerable<TransactionInstruction> GetInstructions(PublicKey ownerKey, PublicKey realmWalletKey)
+		{
+			if (TokenAccount is null)
+				yield return AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
+					realmWalletKey,
+					ownerKey,
+					Mint
+				);
+
+			yield return TokenProgram.MintTo(
+				Mint,
+				AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(ownerKey, Mint),
+				(ulong)Amount,
+				realmWalletKey
+			);
+		}
+	}
 }

@@ -12,8 +12,8 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Model
 	{
 		private static readonly SecretKeyStoreService KeystoreService = new();
 
-		[BsonElement("_id")]
-		public ObjectId ID { get; set; } = ObjectId.GenerateNewId();
+		[BsonElement("_id")] public ObjectId ID { get; set; } = ObjectId.GenerateNewId();
+
 		public string Name { get; set; }
 		public string Value { get; set; }
 		public DateTime Created { get; set; } = DateTime.Now;
@@ -22,7 +22,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Model
 		{
 			return KeystoreService.DecryptKeyStoreFromJson(Configuration.RealmSecret, Value);
 		}
-		
+
 		public Wallet ToWallet()
 		{
 			var decryptedKeystore = DecryptValue();
