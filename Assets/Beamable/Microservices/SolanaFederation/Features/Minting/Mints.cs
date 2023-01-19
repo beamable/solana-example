@@ -6,52 +6,73 @@ using MongoDB.Driver;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Minting
 {
-    public class Mints
-    {
-        private readonly IMongoDatabase _db;
-        private readonly Dictionary<string, string> _mintsByContent;
-        private readonly Dictionary<string, string> _mintsByTokens;
+	public class Mints
+	{
+		private readonly IMongoDatabase _db;
+		private readonly Dictionary<string, string> _mintsByContent;
+		private readonly Dictionary<string, string> _mintsByTokens;
 
-        public Mints(IList<Mint> mints, IMongoDatabase db)
-        {
-            _db = db;
-            _mintsByContent = mints.ToDictionary(x => x.ContentId, x => x.PublicKey);
-            _mintsByTokens = mints.ToDictionary(x => x.PublicKey, x => x.ContentId);
-        }
+		public Mints(IList<Mint> mints, IMongoDatabase db)
+		{
+			_db = db;
+			_mintsByContent = mints.ToDictionary(x => x.ContentId, x => x.PublicKey);
+			_mintsByTokens = mints.ToDictionary(x => x.PublicKey, x => x.ContentId);
+		}
 
-        private void AddMint(Mint mint)
-        {
-            _mintsByContent[mint.ContentId] = mint.PublicKey;
-            _mintsByTokens[mint.PublicKey] = mint.ContentId;
-        }
+		public HashSet<string> ContentIds
+		{
+			get
+			{
+				return _mintsByContent.Keys.ToHashSet();
+			}
+		}
 
-        public string GetByContent(string contentId) => _mintsByContent.GetValueOrDefault(contentId);
+		public HashSet<string> Tokens
+		{
+			get
+			{
+				return _mintsByTokens.Keys.ToHashSet();
+			}
+		}
 
-        public string GetByToken(string token) => _mintsByTokens.GetValueOrDefault(token);
+		private void AddMint(Mint mint)
+		{
+			_mintsByContent[mint.ContentId] = mint.PublicKey;
+			_mintsByTokens[mint.PublicKey] = mint.ContentId;
+		}
 
-        public bool ContainsContent(string contentId) => _mintsByContent.ContainsKey(contentId);
+		public string GetByContent(string contentId)
+		{
+			return _mintsByContent.GetValueOrDefault(contentId);
+		}
 
-        public bool ContainsMint(string mint) => _mintsByTokens.ContainsKey(mint);
+		public string GetByToken(string token)
+		{
+			return _mintsByTokens.GetValueOrDefault(token);
+		}
 
-        public HashSet<string> ContentIds => _mintsByContent.Keys.ToHashSet();
+		public bool ContainsContent(string contentId)
+		{
+			return _mintsByContent.ContainsKey(contentId);
+		}
 
-        public HashSet<string> Tokens => _mintsByTokens.Keys.ToHashSet();
+		public bool ContainsMint(string mint)
+		{
+			return _mintsByTokens.ContainsKey(mint);
+		}
 
-        public async ValueTask EnsureExist(string contentId)
-        {
-            if (!ContainsContent(contentId))
-            {
-                var newMint = await MintingService.GetOrCreateMint(_db, contentId);
-                AddMint(newMint);
-            }
-        }
+		public async ValueTask EnsureExist(string contentId)
+		{
+			if (!ContainsContent(contentId))
+			{
+				var newMint = await MintingService.GetOrCreateMint(_db, contentId);
+				AddMint(newMint);
+			}
+		}
 
-        public async ValueTask EnsureExist(IEnumerable<string> contentIds)
-        {
-            foreach (var contentId in contentIds)
-            {
-                await EnsureExist(contentId);
-            }
-        }
-    }
+		public async ValueTask EnsureExist(IEnumerable<string> contentIds)
+		{
+			foreach (var contentId in contentIds) await EnsureExist(contentId);
+		}
+	}
 }

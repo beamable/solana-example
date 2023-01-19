@@ -8,18 +8,19 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage
 	{
 		private static IMongoCollection<Valut> _collection;
 
-		private static async ValueTask<IMongoCollection<Valut>> Get(IMongoDatabase db)
+		public static async ValueTask<IMongoCollection<Valut>> Get(IMongoDatabase db)
 		{
 			if (_collection is null)
 			{
 				_collection = db.GetCollection<Valut>("valut");
 				await _collection.Indexes.CreateOneAsync(
-						new CreateIndexModel<Valut>(
-							Builders<Valut>.IndexKeys.Ascending(x => x.Name),
-								new CreateIndexOptions { Unique = true }
-						)
-					);
+					new CreateIndexModel<Valut>(
+						Builders<Valut>.IndexKeys.Ascending(x => x.Name),
+						new CreateIndexOptions { Unique = true }
+					)
+				);
 			}
+
 			return _collection;
 		}
 
