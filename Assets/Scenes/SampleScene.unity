@@ -717,6 +717,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -1117,7 +1118,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Conmnect wallet
+  m_text: Connect wallet
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1497,7 +1498,6 @@ MonoBehaviour:
   _publicKeyValue: {fileID: 79999278}
   _connectWalletButton: {fileID: 1350176771}
   _attachIdentityButton: {fileID: 338651515}
-  _detachIdentityButton: {fileID: 154231507}
   _providerNamespace: Solana
   _providerService: SolanaAuthMS
 --- !u!4 &1712438354
