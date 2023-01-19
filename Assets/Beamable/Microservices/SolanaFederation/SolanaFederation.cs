@@ -17,10 +17,12 @@ namespace Beamable.Microservices.SolanaFederation
 {
 	/*
 	 * TODO:
+	 * - Use one single transaction for everything. AsyncLocal static field for the tx builder.
+	 * - Use derived accouts for Mints???
 	 * - Custom thread-safe RPC client rate limiting and make it configurable
 	 */
 	[Microservice("SolanaFederation")]
-	public class SolanaFederationService : Microservice
+	public class SolanaFederation : Microservice
 	{
 		[ClientCallable("authenticate")]
 		public ExternalAuthenticationResponse Authenticate(string token, string challenge, string solution)
@@ -80,15 +82,16 @@ namespace Beamable.Microservices.SolanaFederation
 			if (newInstructions.Any())
 			{
 				// Send the transaction
+				BeamableLogger.Log("Sending transaction with {N} instructions", newInstructions.Count);
 				var transactionId = await TransactionExecutor.Execute(newInstructions, realmWallet);
 				BeamableLogger.Log("Transaction {TransactionId} processed successfully", transactionId);
 			}
 			else
 				BeamableLogger.LogWarning("No transaction instructions were generated for the request");
 
-			return playerTokenState
-				.MergeIn(newTokens)
-				.ToProxyState();
+			playerTokenState.MergeIn(newTokens);
+
+			return playerTokenState.ToProxyState();
 		}
 
 		// Not used currently

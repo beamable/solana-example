@@ -98,7 +98,23 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 
 		public InventoryProxyState ToProxyState()
 		{
-			return new InventoryProxyState();
+			var currencies = _tokensByContent
+				.Values
+				.Where(x => x.IsCurrency())
+				.ToList();
+			
+			var items = _tokensByContent
+				.Values
+				.Except(currencies)
+				.GroupBy(x => x.ContentId)
+				.ToList();
+
+			return new InventoryProxyState { 
+				currencies = currencies.ToDictionary(x => x.ContentId, x => decimal.ToInt64(x.Amount)),
+				items = items.ToDictionary(x => x.Key, x => x.Select(y => new ItemProxy {
+					proxyId = y.Mint
+				}).ToList())
+			};
 		}
 	}
 
