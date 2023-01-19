@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Extensions;
-using Solnet.Programs;
-using Solnet.Rpc;
-using Solnet.Rpc.Models;
-using Solnet.Rpc.Types;
-using UnityEngine;
+using Solana.Unity.Programs;
+using Solana.Unity.Rpc;
+using Solana.Unity.Rpc.Models;
+using Solana.Unity.Rpc.Types;
 
 namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 {
@@ -24,7 +23,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 
         public static async Task<string> GetLatestBlockHashAsync()
         {
-            var result = await Client.GetLatestBlockHashAsync();
+            var result = await Client.GetRecentBlockHashAsync();
             result.ThrowIfError();
             return result.Result.Value.Blockhash;
         }

@@ -2,7 +2,7 @@
 using System.Text;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
-using Solnet.Wallet;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Authentication
 {

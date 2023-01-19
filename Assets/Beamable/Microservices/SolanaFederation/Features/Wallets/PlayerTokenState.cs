@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
-using Solnet.Programs;
-using Solnet.Rpc.Models;
-using Solnet.Wallet;
+using Solana.Unity.Programs;
+using Solana.Unity.Rpc.Models;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 {

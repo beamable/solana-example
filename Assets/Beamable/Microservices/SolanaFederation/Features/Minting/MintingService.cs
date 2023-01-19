@@ -1,17 +1,15 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Models;
+using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
-using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using MongoDB.Driver;
-using Solnet.Metaplex;
-using Solnet.Programs;
-using Solnet.Rpc.Builders;
-using Solnet.Wallet;
+using Solana.Unity.Programs;
+using Solana.Unity.Rpc.Builders;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Minting
 {
@@ -54,18 +52,18 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 
             var blockHash = await SolanaRpcClient.GetLatestBlockHashAsync();
 
-            // Calculate program derived metadata
-            PublicKey.TryFindProgramAddress(
-                new List<byte[]>()
-                {
-                    Encoding.UTF8.GetBytes("metadata"),
-                    MetadataProgram.ProgramIdKey,
-                    mintAccount.PublicKey
-                },
-                MetadataProgram.ProgramIdKey,
-                out var metadataAddress,
-                out _
-            );
+            // // Calculate program derived metadata
+            // PublicKey.TryFindProgramAddress(
+            //     new List<byte[]>()
+            //     {
+            //         Encoding.UTF8.GetBytes("metadata"),
+            //         MetadataProgram.ProgramIdKey,
+            //         mintAccount.PublicKey
+            //     },
+            //     MetadataProgram.ProgramIdKey,
+            //     out var metadataAddress,
+            //     out _
+            // );
 
             var createMintTransaction = new TransactionBuilder()
                 .SetFeePayer(owner.PublicKey)
@@ -88,24 +86,24 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
                         owner.PublicKey
                     )
                 )
-                .AddInstruction(
-                    MetadataProgram
-                        .CreateMetadataAccount( // Create a metadata account for assigning a "name" to the token
-                            metadataAddress,
-                            mintAccount.PublicKey,
-                            owner.PublicKey,
-                            owner.PublicKey,
-                            owner.PublicKey,
-                            new MetadataParameters
-                            {
-                                name = contentId,
-                                symbol = "",
-                                uri = ""
-                            },
-                            true,
-                            false
-                        )
-                )
+                // .AddInstruction(
+                //     MetadataProgram
+                //         .CreateMetadataAccount( // Create a metadata account for assigning a "name" to the token
+                //             metadataAddress,
+                //             mintAccount.PublicKey,
+                //             owner.PublicKey,
+                //             owner.PublicKey,
+                //             owner.PublicKey,
+                //             new MetadataParameters
+                //             {
+                //                 name = contentId,
+                //                 symbol = "",
+                //                 uri = ""
+                //             },
+                //             true,
+                //             false
+                //         )
+                // )
                 .Build(new List<Account> { owner, mintAccount });
 
             var response = await SolanaRpcClient.SendTransactionAsync(createMintTransaction);

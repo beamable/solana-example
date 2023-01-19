@@ -2,8 +2,9 @@
 using System.Text;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Solnet.KeyStore;
-using Solnet.Wallet.Bip39;
+using Solana.Unity.KeyStore;
+using Solana.Unity.Wallet;
+using Solana.Unity.Wallet.Bip39;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Models
 {
@@ -22,13 +23,13 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Model
 			return KeystoreService.DecryptKeyStoreFromJson(Configuration.RealmSecret, Value);
 		}
 		
-		public Solnet.Wallet.Wallet ToWallet()
+		public Wallet ToWallet()
 		{
 			var decryptedKeystore = DecryptValue();
 			var mnemonicString = Encoding.UTF8.GetString(decryptedKeystore);
 
 			var restoredMnemonic = new Mnemonic(mnemonicString);
-			return new Solnet.Wallet.Wallet(restoredMnemonic);
+			return new Wallet(restoredMnemonic);
 		}
 	}
 }

@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
-using Solnet.Rpc.Builders;
-using Solnet.Rpc.Models;
-using Solnet.Wallet;
+using Solana.Unity.Rpc.Builders;
+using Solana.Unity.Rpc.Models;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 {

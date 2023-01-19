@@ -1,5 +1,5 @@
 ﻿using Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Exceptions;
-using Solnet.Rpc.Core.Http;
+using Solana.Unity.Rpc.Core.Http;
 
 namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Extensions
 {

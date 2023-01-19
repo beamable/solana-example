@@ -12,7 +12,7 @@ using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Server;
 using MongoDB.Driver;
-using Solnet.Wallet;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation
 {

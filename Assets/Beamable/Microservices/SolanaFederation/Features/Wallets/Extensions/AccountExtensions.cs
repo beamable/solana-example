@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Models;
-using Solnet.Programs.Utilities;
-using Solnet.Rpc;
-using Solnet.Wallet;
+using Solana.Unity.Programs.Utilities;
+using Solana.Unity.Rpc;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 {
