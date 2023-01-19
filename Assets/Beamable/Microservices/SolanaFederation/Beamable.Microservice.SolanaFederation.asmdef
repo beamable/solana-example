@@ -30,13 +30,11 @@
         "BouncyCastle.Crypto.dll",
         "Chaos.NaCl.dll",
         "Newtonsoft.Json.dll",
-        "Solnet.Wallet.dll",
-        "Solnet.Programs.dll",
-        "Solnet.KeyStore.dll",
-        "Solnet.Extensions.dll",
-        "Solnet.Rpc.dll",
-        "Microsoft.Extensions.Logging.Abstractions.dll",
-        "Solnet.Metaplex.dll"
+        "Solana.Unity.Extensions.dll",
+        "Solana.Unity.KeyStore.dll",
+        "Solana.Unity.Programs.dll",
+        "Solana.Unity.Rpc.dll",
+        "Solana.Unity.Wallet.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [],
