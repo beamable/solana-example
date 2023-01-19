@@ -24,7 +24,8 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 			var rpcClient = ClientFactory.GetClient(Configuration.SolanaCluster);
 			try
 			{
-				await rpcClient.RequestAirdropAsync(account.PublicKey.Key, SolHelper.ConvertToLamports(amount));
+				var airdropResponse = await rpcClient.RequestAirdropAsync(account.PublicKey.Key, SolHelper.ConvertToLamports(amount));
+				BeamableLogger.Log("Airdrop finished with {@AirdropResponse}", airdropResponse);
 			}
 			catch (Exception ex)
 			{
