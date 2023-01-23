@@ -12,6 +12,7 @@ using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Server;
+using Solana.Unity.Programs.Utilities;
 using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation
@@ -130,10 +131,10 @@ namespace Beamable.Microservices.SolanaFederation
 		}
 
 		[ClientCallable("account/balance")]
-		public async Task<ulong> GetBalance(string publicKey)
+		public async Task<decimal> GetBalance(string publicKey)
 		{
 			var accountInfoResponse = await SolanaRpcClient.GetAccountInfoAsync(publicKey);
-			return accountInfoResponse.Lamports;
+			return SolHelper.ConvertToSol(accountInfoResponse.Lamports);
 		}
 
 		[ClientCallable("account/realm")]
