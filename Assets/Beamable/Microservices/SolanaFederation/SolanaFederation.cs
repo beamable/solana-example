@@ -19,6 +19,16 @@ namespace Beamable.Microservices.SolanaFederation
 	[Microservice("SolanaFederation")]
 	public class SolanaFederation : Microservice
 	{
+		[InitializeServices]
+		public static async Task Initialize(IServiceInitializer initializer)
+		{
+			var storage = initializer.GetService<IStorageObjectConnectionProvider>();
+			var db = await storage.SolanaStorageDatabase();
+			
+			// Fetch the realm wallet on service start to force initialization
+			var _ = await WalletService.GetRealmWallet(db);
+		}
+
 		[ClientCallable("authenticate")]
 		public ExternalAuthenticationResponse Authenticate(string token, string challenge, string solution)
 		{
