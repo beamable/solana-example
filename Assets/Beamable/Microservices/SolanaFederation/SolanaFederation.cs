@@ -96,7 +96,7 @@ namespace Beamable.Microservices.SolanaFederation
 			// Find and persist missing mints
 			var missingMints = await mints.LoadMissing(contentIds);
 
-			// Add instructions for creating missing mints
+			// Ensure all tokens from the request are minted 
 			await MintingService.EnsureMinted(contentIds, realmWallet);
 
 			// Compute the current player token state
