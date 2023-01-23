@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Beamable.Common;
@@ -6,7 +7,7 @@ using Beamable.Common.Api.Auth;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Authentication;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
-using Beamable.Microservices.SolanaFederation.Features.Minting.Storage;
+using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
@@ -15,12 +16,6 @@ using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation
 {
-	/*
-	 * TODO:
-	 * - Use one single transaction for everything. AsyncLocal static field for the tx builder.
-	 * - Use derived accouts for Mints???
-	 * - Custom thread-safe RPC client rate limiting and make it configurable
-	 */
 	[Microservice("SolanaFederation")]
 	public class SolanaFederation : Microservice
 	{
@@ -47,47 +42,68 @@ namespace Beamable.Microservices.SolanaFederation
 			}
 
 			// Generate a challenge
-			return new ExternalAuthenticationResponse {
+			return new ExternalAuthenticationResponse
+			{
 				challenge = Guid.NewGuid().ToString(), challenge_ttl = Configuration.AuthenticationChallengeTtlSec
 			};
 		}
 
-		[ClientCallable("inventory/transaction/start")]
-		public async Task<InventoryProxyState> StartInventoryTransaction(InventoryProxyUpdateRequest request)
+		[ClientCallable("inventory")]
+		public async Task<InventoryProxyState> GetInventoryState(string id)
 		{
 			var db = await Storage.SolanaStorageDatabase();
+			var realmWallet = await WalletService.GetRealmWallet(db);
+			var mints = new Mints(realmWallet, db);
 
-			// Fetch current mints
-			var mints = await MintCollection.GetAll(db);
-
-			// Ensure all contentIds are minted 
-			await mints.EnsureExist(request.currencies.Keys);
-			await mints.EnsureExist(request.newItems.Select(x => x.contentId));
+			// Load persisted content/mint mappings
+			await mints.LoadPersisted();
 
 			// Compute the current player token state
-			var playerTokenState = await PlayerTokenState.Compute(request.id, mints);
+			var playerTokenState = await PlayerTokenState.Compute(id, mints);
 
-			var playerKey = new PublicKey(request.id);
+			return playerTokenState.ToProxyState();
+		}
+
+		[ClientCallable("inventory/transaction/start")]
+		public async Task<InventoryProxyState> StartInventoryTransaction(string id, string transaction,
+			Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
+		{
+			var db = await Storage.SolanaStorageDatabase();
 			var realmWallet = await WalletService.GetRealmWallet(db);
+
+			TransactionManager.InitTransaction(realmWallet);
+
+			var mints = new Mints(realmWallet, db);
+
+			// Load persisted content/mint mappings
+			await mints.LoadPersisted();
+
+			var contentIds = currencies.Keys
+				.Union(newItems.Select(x => x.contentId))
+				.ToList();
+
+			// Find and persist missing mints
+			var missingMints = await mints.LoadMissing(contentIds);
+
+			// Add instructions for creating missing mints
+			await MintingService.EnsureMinted(contentIds, realmWallet);
+
+			// Compute the current player token state
+			var playerTokenState = await PlayerTokenState.Compute(id, mints);
+
+			var playerKey = new PublicKey(id);
 
 			// Compute new token transactions
 			var newTokens = playerTokenState
-				.GetNewTokensFromRequest(request, mints)
+				.GetNewTokensFromRequest(currencies, newItems, mints)
 				.ToList();
 			var newInstructions = newTokens
 				.Select(c => c.GetInstructions(playerKey, realmWallet.Account.PublicKey))
 				.SelectMany(x => x)
 				.ToList();
 
-			if (newInstructions.Any())
-			{
-				// Send the transaction
-				BeamableLogger.Log("Sending transaction with {N} instructions", newInstructions.Count);
-				var transactionId = await TransactionExecutor.Execute(newInstructions, realmWallet);
-				BeamableLogger.Log("Transaction {TransactionId} processed successfully", transactionId);
-			}
-			else
-				BeamableLogger.LogWarning("No transaction instructions were generated for the request");
+			TransactionManager.AddInstructions(newInstructions);
+			await TransactionManager.Execute(realmWallet);
 
 			playerTokenState.MergeIn(newTokens);
 
@@ -96,7 +112,8 @@ namespace Beamable.Microservices.SolanaFederation
 
 		// Not used currently
 		[ClientCallable("inventory/transaction/end")]
-		public InventoryProxyState EndInventoryTransaction(InventoryProxyUpdateRequest request)
+		public InventoryProxyState EndInventoryTransaction(string id, string transaction,
+			Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
 		{
 			return new InventoryProxyState();
 		}

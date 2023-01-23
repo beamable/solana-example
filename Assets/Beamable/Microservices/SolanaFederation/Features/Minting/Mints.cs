@@ -1,52 +1,46 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Beamable.Microservices.SolanaFederation.Features.Minting.Storage;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Models;
+using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
 using MongoDB.Driver;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Minting
 {
 	public class Mints
 	{
 		private readonly IMongoDatabase _db;
-		private readonly Dictionary<string, string> _mintsByContent;
-		private readonly Dictionary<string, string> _mintsByTokens;
+		private readonly Dictionary<string, Mint> _mintsByContent;
+		private readonly Dictionary<string, Mint> _mintsByTokens;
+		private readonly Wallet _realmWallet;
 
-		public Mints(IList<Mint> mints, IMongoDatabase db)
+		public Mints(Wallet realmWallet, IMongoDatabase db)
 		{
+			_mintsByContent = new Dictionary<string, Mint>();
+			_mintsByTokens = new Dictionary<string, Mint>();
+			_realmWallet = realmWallet;
 			_db = db;
-			_mintsByContent = mints.ToDictionary(x => x.ContentId, x => x.PublicKey);
-			_mintsByTokens = mints.ToDictionary(x => x.PublicKey, x => x.ContentId);
-		}
-
-		public HashSet<string> ContentIds
-		{
-			get
-			{
-				return _mintsByContent.Keys.ToHashSet();
-			}
-		}
-
-		public HashSet<string> Tokens
-		{
-			get
-			{
-				return _mintsByTokens.Keys.ToHashSet();
-			}
 		}
 
 		private void AddMint(Mint mint)
 		{
-			_mintsByContent[mint.ContentId] = mint.PublicKey;
-			_mintsByTokens[mint.PublicKey] = mint.ContentId;
+			_mintsByContent[mint.ContentId] = mint;
+			_mintsByTokens[mint.PublicKey] = mint;
 		}
 
-		public string GetByContent(string contentId)
+		private void AddMints(IEnumerable<Mint> mints)
+		{
+			mints.ToList().ForEach(AddMint);
+		}
+
+		public Mint GetByContent(string contentId)
 		{
 			return _mintsByContent.GetValueOrDefault(contentId);
 		}
 
-		public string GetByToken(string token)
+		public Mint GetByToken(string token)
 		{
 			return _mintsByTokens.GetValueOrDefault(token);
 		}
@@ -61,18 +55,30 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			return _mintsByTokens.ContainsKey(mint);
 		}
 
-		public async ValueTask EnsureExist(string contentId)
+		public async Task<IList<Mint>> LoadMissing(IList<string> contentIds)
 		{
-			if (!ContainsContent(contentId))
+			var missingContentIds = contentIds
+				.Where(c => !_mintsByContent.ContainsKey(c))
+				.ToList();
+
+			var missingMints = missingContentIds
+				.Select(contentId => new Mint
+					{ ContentId = contentId, PublicKey = _realmWallet.GetAccount(contentId).PublicKey.Key })
+				.ToList();
+
+			if (missingMints.Any())
 			{
-				var newMint = await MintingService.GetOrCreateMint(_db, contentId);
-				AddMint(newMint);
+				AddMints(missingMints);
+				await MintCollection.Upsert(_db, missingMints);
 			}
+
+			return missingMints;
 		}
 
-		public async ValueTask EnsureExist(IEnumerable<string> contentIds)
+		public async Task LoadPersisted()
 		{
-			foreach (var contentId in contentIds) await EnsureExist(contentId);
+			var persistedMints = await MintCollection.GetAll(_db);
+			persistedMints.ForEach(AddMint);
 		}
 	}
 }

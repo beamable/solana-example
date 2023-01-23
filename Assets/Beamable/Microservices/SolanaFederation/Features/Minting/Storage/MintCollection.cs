@@ -1,10 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Models;
 using MongoDB.Driver;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage
 {
-	public class MintCollection
+	public static class MintCollection
 	{
 		private static IMongoCollection<Mint> _collection;
 
@@ -24,27 +26,23 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage
 			return _collection;
 		}
 
-		public static async Task<Mint> Get(IMongoDatabase db, string contentId)
-		{
-			var collection = await Get(db);
-			return await collection
-				.Find(x => x.ContentId == contentId)
-				.FirstOrDefaultAsync();
-		}
-
-		public static async Task<Mints> GetAll(IMongoDatabase db)
+		public static async Task<List<Mint>> GetAll(IMongoDatabase db)
 		{
 			var collection = await Get(db);
 			var mints = await collection
 				.Find(x => true)
 				.ToListAsync();
-			return new Mints(mints, db);
+			return mints;
 		}
 
-		public static async Task Insert(IMongoDatabase db, Mint mint)
+		public static async Task Upsert(IMongoDatabase db, IEnumerable<Mint> mints)
 		{
 			var collection = await Get(db);
-			await collection.InsertOneAsync(mint);
+			var ops = mints
+				.Select(mint => new ReplaceOneModel<Mint>
+					(Builders<Mint>.Filter.Where(x => x.ContentId == mint.ContentId), mint) { IsUpsert = true })
+				.ToList();
+			await collection.BulkWriteAsync(ops);
 		}
 	}
 }

@@ -6,7 +6,6 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Model
 	public record Mint
 	{
 		[BsonElement("_id")] public ObjectId ID { get; set; } = ObjectId.GenerateNewId();
-
 		public string ContentId { get; set; }
 		public string PublicKey { get; set; }
 	}

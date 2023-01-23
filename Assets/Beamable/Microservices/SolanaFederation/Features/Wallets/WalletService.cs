@@ -8,7 +8,7 @@ using Solana.Unity.Wallet.Bip39;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 {
-	public class WalletService
+	public static class WalletService
 	{
 		private static Wallet _cachedWallet;
 
