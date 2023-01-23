@@ -78,6 +78,7 @@ namespace Beamable.Microservices.SolanaFederation
 		public async Task<InventoryProxyState> StartInventoryTransaction(string id, string transaction,
 			Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
 		{
+			BeamableLogger.Log("Processing start transaction request {TransactionId}", transaction);
 			var db = await Storage.SolanaStorageDatabase();
 			var realmWallet = await WalletService.GetRealmWallet(db);
 
