@@ -69,7 +69,8 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 							{
 								name = contentId,
 								symbol = "",
-								uri = ""
+								uri = "",
+								creators = new List<Creator> { new(realmWallet.Account.PublicKey, 100, true) }
 							},
 							false,
 							true
