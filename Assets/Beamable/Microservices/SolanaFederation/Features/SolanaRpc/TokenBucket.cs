@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assets.Beamable.Microservices.SolanaFederation.Features.SolanaRpc
+namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 {
 	internal class TokenBucket
 	{

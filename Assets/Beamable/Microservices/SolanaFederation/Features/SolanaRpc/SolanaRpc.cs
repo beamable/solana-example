@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Assets.Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Extensions;
 using Solana.Unity.Programs;
@@ -24,8 +23,6 @@ namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 				BeamableLogger.LogWarning("RPC Client was rate limited, waiting 100ms");
 				await Task.Delay(100);
 			}
-
-			;
 		}
 
 		public static async Task<ulong> GetMinimumBalanceForRentExemptionAsync(long accountDataSize,
