@@ -26,7 +26,7 @@ namespace Beamable.Microservices.SolanaFederation
 			var storage = initializer.GetService<IStorageObjectConnectionProvider>();
 			var db = await storage.SolanaStorageDatabase();
 			
-			// Fetch the realm wallet on service start to force initialization
+			// Fetch the realm wallet on service start for early initialization
 			var _ = await WalletService.GetRealmWallet(db);
 		}
 
@@ -95,7 +95,7 @@ namespace Beamable.Microservices.SolanaFederation
 				.ToList();
 
 			// Find and persist missing mints
-			var missingMints = await mints.LoadMissing(contentIds);
+			await mints.LoadMissing(contentIds);
 
 			// Ensure all tokens from the request are minted 
 			await MintingService.EnsureMinted(contentIds, realmWallet);
