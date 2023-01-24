@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Beamable.Common;
-using Beamable.Common.Api.Auth;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Authentication;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
@@ -18,7 +17,7 @@ using Solana.Unity.Wallet;
 namespace Beamable.Microservices.SolanaFederation
 {
 	[Microservice("SolanaFederation")]
-	public class SolanaFederation : Microservice
+	public class SolanaFederation : Microservice, IFederatedLogin<SolanaCloudIdentity>
 	{
 		[InitializeServices]
 		public static async Task Initialize(IServiceInitializer initializer)
@@ -30,8 +29,7 @@ namespace Beamable.Microservices.SolanaFederation
 			var _ = await WalletService.GetRealmWallet(db);
 		}
 
-		[ClientCallable("authenticate")]
-		public ExternalAuthenticationResponse Authenticate(string token, string challenge, string solution)
+		public Promise<FederatedAuthenticationResponse> Authenticate(string token, string challenge, string solution)
 		{
 			if (string.IsNullOrEmpty(token))
 			{
@@ -44,7 +42,7 @@ namespace Beamable.Microservices.SolanaFederation
 				// Verify the solution
 				if (AuthenticationService.IsSignatureValid(token, challenge, solution))
 					// User identity confirmed
-					return new ExternalAuthenticationResponse { user_id = token };
+					return Task.FromResult(new FederatedAuthenticationResponse { user_id = token }).ToPromise();
 				// Signature is invalid, user identity isn't confirmed
 				BeamableLogger.LogWarning(
 					"Invalid signature {signature} for challenge {challenge} and wallet {wallet}", solution,
@@ -53,10 +51,10 @@ namespace Beamable.Microservices.SolanaFederation
 			}
 
 			// Generate a challenge
-			return new ExternalAuthenticationResponse
+			return Task.FromResult(new FederatedAuthenticationResponse
 			{
 				challenge = Guid.NewGuid().ToString(), challenge_ttl = Configuration.AuthenticationChallengeTtlSec
-			};
+			}).ToPromise();
 		}
 
 		[ClientCallable("inventory/state")]
