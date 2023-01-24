@@ -24,7 +24,7 @@ namespace Beamable.Microservices.SolanaFederation
 		{
 			var storage = initializer.GetService<IStorageObjectConnectionProvider>();
 			var db = await storage.SolanaStorageDatabase();
-			
+
 			// Fetch the realm wallet on service start for early initialization
 			var _ = await WalletService.GetRealmWallet(db);
 		}
@@ -42,7 +42,8 @@ namespace Beamable.Microservices.SolanaFederation
 				// Verify the solution
 				if (AuthenticationService.IsSignatureValid(token, challenge, solution))
 					// User identity confirmed
-					return Task.FromResult(new FederatedAuthenticationResponse { user_id = token }).ToPromise();
+					return Promise<FederatedAuthenticationResponse>.Successful(new FederatedAuthenticationResponse
+						{ user_id = token });
 				// Signature is invalid, user identity isn't confirmed
 				BeamableLogger.LogWarning(
 					"Invalid signature {signature} for challenge {challenge} and wallet {wallet}", solution,
@@ -51,10 +52,10 @@ namespace Beamable.Microservices.SolanaFederation
 			}
 
 			// Generate a challenge
-			return Task.FromResult(new FederatedAuthenticationResponse
+			return Promise<FederatedAuthenticationResponse>.Successful(new FederatedAuthenticationResponse
 			{
 				challenge = Guid.NewGuid().ToString(), challenge_ttl = Configuration.AuthenticationChallengeTtlSec
-			}).ToPromise();
+			});
 		}
 
 		[ClientCallable("inventory/state")]

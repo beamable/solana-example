@@ -1,6 +1,4 @@
-using Beamable.Common;
-
-namespace Beamable.Microservices.SolanaFederation
+namespace Beamable.Common
 {
 	public class SolanaCloudIdentity : IThirdPartyCloudIdentity
 	{
