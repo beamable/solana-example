@@ -59,7 +59,7 @@ namespace Beamable.Microservices.SolanaFederation
 			};
 		}
 
-		[ClientCallable("inventory")]
+		[ClientCallable("inventory/state")]
 		public async Task<InventoryProxyState> GetInventoryState(string id)
 		{
 			var db = await Storage.SolanaStorageDatabase();
@@ -75,7 +75,7 @@ namespace Beamable.Microservices.SolanaFederation
 			return playerTokenState.ToProxyState();
 		}
 
-		[ClientCallable("inventory/transaction/start")]
+		[ClientCallable("inventory/put")]
 		public async Task<InventoryProxyState> StartInventoryTransaction(string id, string transaction,
 			Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
 		{
@@ -120,14 +120,6 @@ namespace Beamable.Microservices.SolanaFederation
 			playerTokenState.MergeIn(newTokens);
 
 			return playerTokenState.ToProxyState();
-		}
-
-		// Not used currently
-		[ClientCallable("inventory/transaction/end")]
-		public InventoryProxyState EndInventoryTransaction(string id, string transaction,
-			Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
-		{
-			return new InventoryProxyState();
 		}
 
 		[ClientCallable("account/balance")]
