@@ -32,7 +32,10 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 			{
 				BeamableLogger.Log("Created realm wallet {RealmWalletName} {RealmWallet}", Configuration.RealmWalletName,
 					newWallet.Account.PublicKey.Key);
-				if (Configuration.AirDropAmount > 0) await newWallet.Account.Airdrop(Configuration.AirDropAmount);
+				if (Configuration.AirDropAmount > 0)
+				{
+					await newWallet.Account.Airdrop(Configuration.AirDropAmount);
+				}
 				return newWallet;
 			}
 
