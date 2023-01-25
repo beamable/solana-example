@@ -15,9 +15,9 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 				wallet.Account.PublicKey.Key);
 		}
 
-		public static Valut ToValut(this Wallet wallet)
+		public static Vault ToVault(this Wallet wallet)
 		{
-			return new Valut
+			return new Vault
 			{
 				Name = Configuration.RealmWalletName,
 				Value = wallet.EncryptMnemonic()

@@ -4,18 +4,18 @@ using MongoDB.Driver;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage
 {
-	public static class ValutCollection
+	public static class VaultCollection
 	{
-		private static IMongoCollection<Valut> _collection;
+		private static IMongoCollection<Vault> _collection;
 
-		public static async ValueTask<IMongoCollection<Valut>> Get(IMongoDatabase db)
+		public static async ValueTask<IMongoCollection<Vault>> Get(IMongoDatabase db)
 		{
 			if (_collection is null)
 			{
-				_collection = db.GetCollection<Valut>("valut");
+				_collection = db.GetCollection<Vault>("vault");
 				await _collection.Indexes.CreateOneAsync(
-					new CreateIndexModel<Valut>(
-						Builders<Valut>.IndexKeys.Ascending(x => x.Name),
+					new CreateIndexModel<Vault>(
+						Builders<Vault>.IndexKeys.Ascending(x => x.Name),
 						new CreateIndexOptions { Unique = true }
 					)
 				);
@@ -24,7 +24,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage
 			return _collection;
 		}
 
-		public static async Task<Valut> GetByName(IMongoDatabase db, string name)
+		public static async Task<Vault> GetByName(IMongoDatabase db, string name)
 		{
 			var collection = await Get(db);
 			return await collection
@@ -32,12 +32,12 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage
 				.FirstOrDefaultAsync();
 		}
 
-		public static async Task<bool> TryInsert(IMongoDatabase db, Valut valut)
+		public static async Task<bool> TryInsert(IMongoDatabase db, Vault vault)
 		{
 			var collection = await Get(db);
 			try
 			{
-				await collection.InsertOneAsync(valut);
+				await collection.InsertOneAsync(vault);
 				return true;
 			}
 			catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)

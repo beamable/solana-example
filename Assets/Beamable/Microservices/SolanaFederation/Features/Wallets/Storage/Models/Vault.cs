@@ -8,7 +8,7 @@ using Solana.Unity.Wallet.Bip39;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Models
 {
-	public record Valut
+	public record Vault
 	{
 		private static readonly SecretKeyStoreService KeystoreService = new();
 
