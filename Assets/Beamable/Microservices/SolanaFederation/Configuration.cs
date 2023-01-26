@@ -10,6 +10,7 @@ namespace Beamable.Microservices.SolanaFederation
 		public const int AuthenticationChallengeTtlSec = 600;
 
 		public const string RealmWalletName = "default-wallet";
+		public const string DefaultTokenCollectionName = "Beamable";
 		public const int AirDropAmount = 1;
 
 		public static readonly string RealmSecret = Environment.GetEnvironmentVariable("SECRET");

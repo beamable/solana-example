@@ -12,7 +12,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 	{
 		private static Wallet _cachedWallet;
 
-		public static async ValueTask<Wallet> GetRealmWallet(IMongoDatabase db)
+		public static async ValueTask<Wallet> GetOrCreateRealmWallet(IMongoDatabase db)
 		{
 			return _cachedWallet ??= await ComputeRealmWallet(db);
 		}

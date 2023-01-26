@@ -6,6 +6,7 @@ using Beamable.Common;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Authentication;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
+using Beamable.Microservices.SolanaFederation.Features.Collections;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
@@ -24,9 +25,20 @@ namespace Beamable.Microservices.SolanaFederation
 		{
 			var storage = initializer.GetService<IStorageObjectConnectionProvider>();
 			var db = await storage.SolanaStorageDatabase();
+			
+			TransactionManager.InitTransaction();
 
 			// Fetch the realm wallet on service start for early initialization
-			var _ = await WalletService.GetRealmWallet(db);
+			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
+			TransactionManager.AddSigner(realmWallet.Account);
+			
+			// Fetch the default token collection on service start for early initialization
+			var _ = await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName, realmWallet);
+			
+			if (TransactionManager.HasInstructions())
+			{
+				await TransactionManager.Execute(realmWallet);
+			}
 		}
 
 		public Promise<FederatedAuthenticationResponse> Authenticate(string token, string challenge, string solution)
@@ -62,7 +74,7 @@ namespace Beamable.Microservices.SolanaFederation
 		public async Task<InventoryProxyState> GetInventoryState(string id)
 		{
 			var db = await Storage.SolanaStorageDatabase();
-			var realmWallet = await WalletService.GetRealmWallet(db);
+			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
 			var mints = new Mints(realmWallet, db);
 
 			// Load persisted content/mint mappings
@@ -75,15 +87,17 @@ namespace Beamable.Microservices.SolanaFederation
 		}
 
 		[ClientCallable("inventory/put")]
-		public async Task<InventoryProxyState> StartInventoryTransaction(string id, string transaction,
+		public async Task<InventoryProxyState> InventoryPut(string id, string transaction,
 			Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
 		{
 			BeamableLogger.Log("Processing start transaction request {TransactionId}", transaction);
 			var db = await Storage.SolanaStorageDatabase();
-			var realmWallet = await WalletService.GetRealmWallet(db);
-
-			TransactionManager.InitTransaction(realmWallet);
-
+			
+			TransactionManager.InitTransaction();
+			
+			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
+			TransactionManager.AddSigner(realmWallet.Account);
+			
 			var mints = new Mints(realmWallet, db);
 
 			// Load persisted content/mint mappings
@@ -97,7 +111,7 @@ namespace Beamable.Microservices.SolanaFederation
 			await mints.LoadMissing(contentIds);
 
 			// Ensure all tokens from the request are minted 
-			await MintingService.EnsureMinted(contentIds, realmWallet);
+			await mints.EnsureMinted(contentIds, realmWallet);
 
 			// Compute the current player token state
 			var playerTokenState = await PlayerTokenState.Compute(id, mints);
@@ -131,7 +145,7 @@ namespace Beamable.Microservices.SolanaFederation
 		[ClientCallable("account/realm")]
 		public async Task<string> GetRealmAccount()
 		{
-			var realmWallet = await WalletService.GetRealmWallet(await Storage.SolanaStorageDatabase());
+			var realmWallet = await WalletService.GetOrCreateRealmWallet(await Storage.SolanaStorageDatabase());
 			return realmWallet.Account.PublicKey.Key;
 		}
 	}

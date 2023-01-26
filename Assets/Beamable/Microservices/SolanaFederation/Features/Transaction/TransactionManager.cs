@@ -16,12 +16,13 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 	{
 		private static readonly AsyncLocal<TransactionState> TransactionState = new();
 
-		public static TransactionState InitTransaction(Wallet realmWallet)
+		public static TransactionState InitTransaction()
 		{
 			TransactionState.Value = new TransactionState();
-			TransactionState.Value.Signers.Add(realmWallet.Account);
 			return TransactionState.Value;
 		}
+
+		public static bool HasInstructions() => TransactionState.Value?.Instructions.Any() == true;
 
 		public static void AddInstruction(TransactionInstruction transactionInstruction)
 		{
@@ -42,7 +43,13 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 				TransactionState.Value.Signers.Add(signer);
 		}
 
-		public static async Task<string> Execute(Wallet realmWallet)
+		public static void AddSuccessCallback(Action<string> callback)
+		{
+			if (TransactionState.Value is null) throw new TransactionException("Transaction is not initialized");
+			TransactionState.Value.SuccessCallbacks.Add(callback);
+		}
+
+		public static async Task<string> Execute(Wallet feePayer)
 		{
 			if (TransactionState.Value is null) throw new TransactionException("Transaction is not initialized");
 
@@ -55,8 +62,10 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 			var blockHash = await SolanaRpcClient.GetLatestBlockHashAsync();
 
 			var transactionBuilder = new TransactionBuilder()
-				.SetFeePayer(realmWallet.Account.PublicKey)
+				.SetFeePayer(feePayer.Account.PublicKey)
 				.SetRecentBlockHash(blockHash);
+			
+			AddSigner(feePayer.Account);
 
 			TransactionState.Value.Instructions
 				.ForEach(instruction => transactionBuilder.AddInstruction(instruction));
@@ -65,6 +74,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 			BeamableLogger.Log("Generated transaction: {TransactionBytes}", Convert.ToBase64String(transaction));
 			var transactionId = await SolanaRpcClient.SendTransactionAsync(transaction);
 			BeamableLogger.Log("Transaction {TransactionId} processed successfully", transactionId);
+			TransactionState.Value.SuccessCallbacks.ForEach(c => c(transactionId));
 			return transactionId;
 		}
 	}
