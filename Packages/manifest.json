@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "com.beamable": "0.0.0-PREVIEW.NIGHTLY-202301231817",
-    "com.beamable.server": "0.0.0-PREVIEW.NIGHTLY-202301231817",
+    "com.beamable": "1.11.0-PREVIEW.RC1",
+    "com.beamable.server": "1.11.0-PREVIEW.RC1",
     "com.unity.collab-proxy": "1.17.7",
     "com.unity.ide.rider": "3.0.17",
     "com.unity.ide.visualstudio": "2.0.16",
