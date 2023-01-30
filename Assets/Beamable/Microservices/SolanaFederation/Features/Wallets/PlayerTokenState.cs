@@ -6,19 +6,20 @@ using Beamable.Common;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
+using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 {
-	internal class PlayerTokenState
+	public class PlayerTokenState
 	{
-		private readonly Dictionary<string, PlayerTokenInfo> _tokensByContent;
+		private readonly List<PlayerTokenInfo> _tokens;
 
-		private PlayerTokenState(Dictionary<string, PlayerTokenInfo> tokensByContent)
+		private PlayerTokenState(List<PlayerTokenInfo> tokens)
 		{
-			_tokensByContent = tokensByContent;
+			_tokens = tokens;
 		}
 
 		public static async Task<PlayerTokenState> Compute(string pubKey, Mints mints)
@@ -34,24 +35,50 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 					ContentId = mints.GetByToken(x.Account.Data.Parsed.Info.Mint).ContentId,
 					Amount = x.Account.Data.Parsed.Info.TokenAmount.AmountDecimal
 				})
-				.ToDictionary(x => x.ContentId, x => x);
+				.ToList();
 
-			return new PlayerTokenState(playerTokens);
+			var state = new PlayerTokenState(playerTokens);
+			await state.LoadItemsMetadata();
+			
+			return state;
 		}
 
-		public decimal GetTokenAmount(string contentId)
+		private async Task LoadItemsMetadata()
 		{
-			return _tokensByContent
-				.GetValueOrDefault(contentId)
+			try
+			{
+				foreach (var token in _tokens.Where(t => !t.IsCurrency()))
+				{
+					var metadataAccount = await SolanaRpcClient.FetchMetadataAccount(token.Mint);
+					if (metadataAccount is not null && !string.IsNullOrEmpty(metadataAccount.metadataV3?.uri))
+					{
+						var metadata = await SolanaRpcClient.FetchOffChainData(metadataAccount.metadataV3.uri);
+						if (metadata is not null && metadata.attributes?.Any() == true)
+						{
+							token.Properties = metadata.attributes.ToDictionary(x => x.trait_type, x => x.value);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				BeamableLogger.LogError("Error loading metadata");
+				BeamableLogger.LogError(ex);
+			}
+		}
+
+		public decimal GetCurrencyAmount(string contentId)
+		{
+			return _tokens
+				.FirstOrDefault(x => x.ContentId == contentId)
 				?.Amount ?? 0;
 		}
 
-		public IEnumerable<PlayerTokenInfo> GetNewTokensFromRequest(Dictionary<string, long> currencies,
-			List<ItemCreateRequest> newItems, Mints mints)
+		public IEnumerable<PlayerTokenInfo> GetNewCurrencyFromRequest(Dictionary<string, long> currencies, Mints mints)
 		{
 			foreach (var newCurrency in currencies)
 			{
-				var currentAmount = GetTokenAmount(newCurrency.Key);
+				var currentAmount = GetCurrencyAmount(newCurrency.Key);
 
 				if (newCurrency.Value > currentAmount)
 				{
@@ -61,74 +88,66 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 						Amount = newCurrency.Value - currentAmount,
 						ContentId = newCurrency.Key,
 						Mint = new PublicKey(mint.PublicKey),
-						TokenAccount = _tokensByContent.GetValueOrDefault(newCurrency.Key)?.TokenAccount
+						TokenAccount = _tokens.FirstOrDefault(x => x.ContentId == newCurrency.Key)?.TokenAccount
 					};
 				}
-			}
-
-			foreach (var newItem in newItems)
-			{
-				var mint = mints.GetByContent(newItem.contentId);
-				yield return new PlayerTokenInfo
-				{
-					Amount = 1,
-					ContentId = newItem.contentId,
-					Mint = new PublicKey(mint.PublicKey),
-					TokenAccount = _tokensByContent.GetValueOrDefault(newItem.contentId)?.TokenAccount
-				};
 			}
 		}
 
 		public PlayerTokenState MergeIn(IEnumerable<PlayerTokenInfo> tokenInfos)
 		{
 			foreach (var tokenInfo in tokenInfos)
-				if (!_tokensByContent.ContainsKey(tokenInfo.ContentId))
+				if (tokenInfo.IsCurrency())
 				{
-					_tokensByContent[tokenInfo.ContentId] = tokenInfo;
+					var maybeExistingCurrency = _tokens.FirstOrDefault(x => x.ContentId == tokenInfo.ContentId);
+					if (maybeExistingCurrency is not null)
+						maybeExistingCurrency.Amount += tokenInfo.Amount;
+					else
+						_tokens.Add(tokenInfo);
 				}
 				else
 				{
-					var currentTokenInfo = _tokensByContent[tokenInfo.ContentId];
-					currentTokenInfo.Amount += tokenInfo.Amount;
+					_tokens.Add(tokenInfo);
 				}
 
 			return this;
 		}
 
-		public bool ContainsToken(string contentId)
-		{
-			return _tokensByContent.ContainsKey(contentId);
-		}
-
 		public InventoryProxyState ToProxyState()
 		{
-			var tokens = _tokensByContent.Values.Where(x => x.Amount > 0).ToList();
+			var tokens = _tokens.Where(x => x.Amount > 0).ToList();
 			var currencies = tokens
 				.Where(x => x.IsCurrency())
 				.ToList();
 
 			var items = tokens
 				.Except(currencies)
+				.GroupBy(x => x.ContentId)
 				.ToList();
 
 			return new InventoryProxyState
 			{
 				currencies = currencies.ToDictionary(x => x.ContentId, x => decimal.ToInt64(x.Amount)),
-				items = items.ToDictionary(x => x.ContentId, x => Enumerable.Range(1, decimal.ToInt32(x.Amount))
-					.Select(_ => new ItemProxy
+				items = items.ToDictionary(x => x.Key, x => x.Select(gv => new ItemProxy
+				{
+					proxyId = gv.Mint.Key,
+					properties = gv.Properties.Select(p => new ItemProperty
 					{
-						proxyId = x.Mint.Key
-					}).ToList())
+						name = p.Key,
+						value = p.Value
+					}).ToList()
+				}).ToList())
 			};
 		}
 	}
 
-	internal record PlayerTokenInfo
+	public record PlayerTokenInfo
 	{
 		public PublicKey TokenAccount { get; set; }
 		public PublicKey Mint { get; set; }
 		public string ContentId { get; set; }
 		public decimal Amount { get; set; }
+		public Dictionary<string, string> Properties { get; set; } = new();
 
 		public bool IsCurrency()
 		{
@@ -140,7 +159,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 			if (TokenAccount is null)
 			{
 				BeamableLogger.Log("Adding CreateAssociatedTokenAccount instruction for content {ContentId}, mint {Mint}",
-					Amount, ContentId, Mint.Key);
+					ContentId, Mint.Key);
 				yield return AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
 					realmWalletKey,
 					ownerKey,

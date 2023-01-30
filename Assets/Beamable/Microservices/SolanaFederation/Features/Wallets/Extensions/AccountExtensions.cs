@@ -15,7 +15,8 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 			var rpcClient = ClientFactory.GetClient(Configuration.SolanaCluster);
 			try
 			{
-				var airdropResponse = await rpcClient.RequestAirdropAsync(account.PublicKey.Key, SolHelper.ConvertToLamports(amount));
+				var airdropResponse =
+					await rpcClient.RequestAirdropAsync(account.PublicKey.Key, SolHelper.ConvertToLamports(amount));
 				BeamableLogger.Log("Airdrop finished with {@AirdropResponse}", airdropResponse);
 				BeamableLogger.Log("Waiting for {WaitSec}s after airdrop for cluster state sync", waitSecAfterAirdrop);
 				await Task.Delay(waitSecAfterAirdrop * 1000);

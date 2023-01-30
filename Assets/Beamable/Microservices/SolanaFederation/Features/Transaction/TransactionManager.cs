@@ -22,7 +22,10 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 			return TransactionState.Value;
 		}
 
-		public static bool HasInstructions() => TransactionState.Value?.Instructions.Any() == true;
+		public static bool HasInstructions()
+		{
+			return TransactionState.Value?.Instructions.Any() == true;
+		}
 
 		public static void AddInstruction(TransactionInstruction transactionInstruction)
 		{
@@ -43,7 +46,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 				TransactionState.Value.Signers.Add(signer);
 		}
 
-		public static void AddSuccessCallback(Action<string> callback)
+		public static void AddSuccessCallback(Func<string, Task> callback)
 		{
 			if (TransactionState.Value is null) throw new TransactionException("Transaction is not initialized");
 			TransactionState.Value.SuccessCallbacks.Add(callback);
@@ -64,7 +67,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 			var transactionBuilder = new TransactionBuilder()
 				.SetFeePayer(feePayer.Account.PublicKey)
 				.SetRecentBlockHash(blockHash);
-			
+
 			AddSigner(feePayer.Account);
 
 			TransactionState.Value.Instructions
@@ -74,7 +77,9 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 			BeamableLogger.Log("Generated transaction: {TransactionBytes}", Convert.ToBase64String(transaction));
 			var transactionId = await SolanaRpcClient.SendTransactionAsync(transaction);
 			BeamableLogger.Log("Transaction {TransactionId} processed successfully", transactionId);
-			TransactionState.Value.SuccessCallbacks.ForEach(c => c(transactionId));
+
+			foreach (var callback in TransactionState.Value.SuccessCallbacks) await callback(transactionId);
+
 			return transactionId;
 		}
 	}

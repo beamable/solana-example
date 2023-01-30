@@ -17,7 +17,9 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage
 				_collection = db.GetCollection<Mint>("mint");
 				await _collection.Indexes.CreateOneAsync(
 					new CreateIndexModel<Mint>(
-						Builders<Mint>.IndexKeys.Ascending(x => x.ContentId),
+						Builders<Mint>.IndexKeys
+							.Ascending(x => x.ContentId)
+							.Ascending(x => x.PublicKey),
 						new CreateIndexOptions { Unique = true }
 					)
 				);
@@ -40,7 +42,8 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage
 			var collection = await Get(db);
 			var ops = mints
 				.Select(mint => new ReplaceOneModel<Mint>
-					(Builders<Mint>.Filter.Where(x => x.ContentId == mint.ContentId), mint) { IsUpsert = true })
+					(Builders<Mint>.Filter.Where(x => x.ContentId == mint.ContentId && x.PublicKey == mint.PublicKey), mint)
+					{ IsUpsert = true })
 				.ToList();
 			await collection.BulkWriteAsync(ops);
 		}

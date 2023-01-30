@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Common.Api.Inventory;
@@ -11,9 +10,9 @@ using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
+using Beamable.Microservices.SolanaFederation.Models;
 using Beamable.Server;
 using Solana.Unity.Programs.Utilities;
-using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation
 {
@@ -25,22 +24,19 @@ namespace Beamable.Microservices.SolanaFederation
 		{
 			var storage = initializer.GetService<IStorageObjectConnectionProvider>();
 			var db = await storage.SolanaStorageDatabase();
-			
+
 			TransactionManager.InitTransaction();
 
 			// Fetch the realm wallet on service start for early initialization
 			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
 			TransactionManager.AddSigner(realmWallet.Account);
-			
+
 			// Fetch the default token collection on service start for early initialization
 			var _ = await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName, realmWallet);
-			
-			if (TransactionManager.HasInstructions())
-			{
-				await TransactionManager.Execute(realmWallet);
-			}
-		}
 
+			if (TransactionManager.HasInstructions()) await TransactionManager.Execute(realmWallet);
+		}
+		
 		public Promise<FederatedAuthenticationResponse> Authenticate(string token, string challenge, string solution)
 		{
 			if (string.IsNullOrEmpty(token))
@@ -88,49 +84,35 @@ namespace Beamable.Microservices.SolanaFederation
 
 		[ClientCallable("inventory/put")]
 		public async Task<InventoryProxyState> InventoryPut(string id, string transaction,
-			Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
+			Dictionary<string, long> currencies, List<InventoryItem> newItems)
 		{
 			BeamableLogger.Log("Processing start transaction request {TransactionId}", transaction);
 			var db = await Storage.SolanaStorageDatabase();
-			
+
 			TransactionManager.InitTransaction();
-			
+
 			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
 			TransactionManager.AddSigner(realmWallet.Account);
-			
+
 			var mints = new Mints(realmWallet, db);
 
 			// Load persisted content/mint mappings
 			await mints.LoadPersisted();
 
-			var contentIds = currencies.Keys
-				.Union(newItems.Select(x => x.contentId))
-				.ToList();
-
-			// Find and persist missing mints
-			await mints.LoadMissing(contentIds);
-
-			// Ensure all tokens from the request are minted 
-			await mints.EnsureMinted(contentIds, realmWallet);
-
 			// Compute the current player token state
 			var playerTokenState = await PlayerTokenState.Compute(id, mints);
 
-			var playerKey = new PublicKey(id);
+			// Mint new items as NFTs
+			var newItemTokens = await mints.MintNewItems(newItems, realmWallet, db, id, Requester);
+			playerTokenState.MergeIn(newItemTokens);
 
-			// Compute new token transactions
-			var newTokens = playerTokenState
-				.GetNewTokensFromRequest(currencies, newItems, mints)
-				.ToList();
-			var newInstructions = newTokens
-				.Select(c => c.GetInstructions(playerKey, realmWallet.Account.PublicKey))
-				.SelectMany(x => x)
-				.ToList();
+			// TODO: update support for NFT metadata
+			
+			// Mint new currency as FTs 
+			var newCurrencyTokens = await mints.MintNewCurrency(id, currencies, realmWallet, playerTokenState);
+			playerTokenState.MergeIn(newCurrencyTokens);
 
-			TransactionManager.AddInstructions(newInstructions);
 			await TransactionManager.Execute(realmWallet);
-
-			playerTokenState.MergeIn(newTokens);
 
 			return playerTokenState.ToProxyState();
 		}

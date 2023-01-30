@@ -12,7 +12,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 		{
 			var keystoreService = new KeyStoreScryptService();
 			var mnemonicStringByteArray = Encoding.UTF8.GetBytes(wallet.Mnemonic.ToString());
-			
+
 			return keystoreService.EncryptAndGenerateKeyStore(Configuration.RealmSecret, mnemonicStringByteArray,
 				wallet.Account.PublicKey.Key);
 		}

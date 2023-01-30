@@ -20,15 +20,17 @@ namespace Beamable.Microservices.SolanaFederation.Features.Collections
 		{
 			var collectionKey = $"_collection.{name}";
 
-			if (CachedCollections.TryGetValue(collectionKey, out var cachedCollection))
-			{
-				return cachedCollection;
-			}
+			if (CachedCollections.TryGetValue(collectionKey, out var cachedCollection)) return cachedCollection;
 
 			var collectionAccount = realmWallet.GetAccount(collectionKey);
 
 			var tokenMintInfo = await SolanaRpcClient.GetTokenMintInfoAsync(collectionAccount.PublicKey);
-			if (tokenMintInfo is null)
+
+			if (tokenMintInfo is not null)
+			{
+				CachedCollections.TryAdd(collectionKey, collectionAccount);
+			}
+			else
 			{
 				BeamableLogger.Log("{CollectionName} is not minted. Minting collection {TokenAddress}", name,
 					collectionAccount.PublicKey.Key);
@@ -50,14 +52,15 @@ namespace Beamable.Microservices.SolanaFederation.Features.Collections
 					TokenProgram.MintAccountDataSize
 				);
 
-				TransactionManager.AddInstruction(SystemProgram.CreateAccount( // Create an account for the collection with lamport balance for rent exemption
+				TransactionManager.AddInstruction(
+					SystemProgram.CreateAccount( // Create an account for the collection with lamport balance for rent exemption
 						realmWallet.Account,
 						collectionAccount.PublicKey,
 						minBalanceForExemption,
 						TokenProgram.MintAccountDataSize,
 						TokenProgram.ProgramIdKey
 					));
-				
+
 				TransactionManager.AddInstruction(TokenProgram.InitializeMint( // Initialize mint - make it a token
 					collectionAccount.PublicKey,
 					0,
@@ -65,7 +68,8 @@ namespace Beamable.Microservices.SolanaFederation.Features.Collections
 					realmWallet.Account.PublicKey
 				));
 
-				TransactionManager.AddInstruction(MetadataProgram.CreateMetadataAccountV3( // Create a metadata account for assigning a "name" to the token
+				TransactionManager.AddInstruction(
+					MetadataProgram.CreateMetadataAccountV3( // Create a metadata account for assigning a "name" to the token
 						metadataAddress,
 						collectionAccount.PublicKey,
 						realmWallet.Account.PublicKey,
@@ -83,7 +87,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.Collections
 					));
 
 				TransactionManager.AddSigner(collectionAccount);
-				TransactionManager.AddSuccessCallback(_ => { CachedCollections.TryAdd(collectionKey, collectionAccount); });
+				TransactionManager.AddSuccessCallback(_ =>
+				{
+					CachedCollections.TryAdd(collectionKey, collectionAccount);
+					return Task.CompletedTask;
+				});
 			}
 
 			return collectionAccount;

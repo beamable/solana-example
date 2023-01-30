@@ -1,11 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Beamable.Common;
+using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Extensions;
+using Newtonsoft.Json;
+using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;
 using Solana.Unity.Rpc;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.Rpc.Types;
+using Solana.Unity.Wallet;
 
 namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 {
@@ -13,6 +19,8 @@ namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 	{
 		private static readonly IRpcClient Client =
 			ClientFactory.GetClient(Configuration.SolanaCluster);
+
+		private static readonly HttpClient HttpClient = new();
 
 		private static readonly TokenBucket TokenBucket = new(Configuration.MaxRpcRequestsPerSec, 1000);
 
@@ -80,6 +88,41 @@ namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 			var result = await Client.GetTokenMintInfoAsync(pubKey);
 			result.ThrowIfError();
 			return result.Result.Value;
+		}
+
+		public static async Task<MetadataAccount> FetchMetadataAccount(PublicKey publicKey)
+		{
+			BeamableLogger.Log("Calling FetchMetadataAccount for {key}", publicKey.Key);
+			try
+			{
+				await AcquireToken();
+				var metadataAccount = await MetadataAccount.GetAccount(Client, publicKey, 3);
+				return metadataAccount;
+			}
+			catch (Exception ex)
+			{
+				BeamableLogger.LogError("Error fetching metadata account for {key}", publicKey.Key);
+				BeamableLogger.LogError(ex);
+				return null;
+			}
+		}
+
+		public static async Task<NftExternalMetadata> FetchOffChainData(string uri)
+		{
+			BeamableLogger.Log("Calling FetchOffChainData {uri}", uri);
+			try
+			{
+				var response = await HttpClient.GetAsync(uri);
+				response.EnsureSuccessStatusCode();
+				var metadata = JsonConvert.DeserializeObject<NftExternalMetadata>(await response.Content.ReadAsStringAsync());
+				return metadata;
+			}
+			catch (Exception ex)
+			{
+				BeamableLogger.LogError("Error fetching external metadata at {url}", uri);
+				BeamableLogger.LogError(ex);
+				return null;
+			}
 		}
 	}
 }
