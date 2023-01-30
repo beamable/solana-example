@@ -19,7 +19,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 
 		public static async Task<string> SaveMetadata(IBeamableRequester beamableRequester, NftExternalMetadata metadata)
 		{
-			return "https://dev-content.beamable.com/1396602546537484/DE_1396602546537487/binary/public/ntf_metadata/2.json";
+			//return "https://dev-content.beamable.com/1396602546537484/DE_1396602546537487/binary/public/ntf_metadata/2.json";
 
 			var metadataJsonString = JsonConvert.SerializeObject(metadata);
 			var metadataPayload = Encoding.UTF8.GetBytes(metadataJsonString);
@@ -38,7 +38,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 							{
 								id = $"token-metadata.{metadata.name}",
 								checksum = payloadChecksum,
-								uploadContentType = "binary"
+								uploadContentType = "text/plain"
 							}
 						}
 					});
@@ -49,10 +49,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 				BeamableLogger.Log("Signed url: {SignedUrl}", signedUrl);
 
 				var content = new ByteArrayContent(metadataPayload);
-				content.Headers.ContentType = new MediaTypeHeaderValue("binary");
+				content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+				content.Headers.ContentMD5 = md5Bytes;
 
 				var putContentResponse = await HttpClient.PutAsync(signedUrl, content);
-				//TODO: receiving "wrong signature response"
+				
 				BeamableLogger.Log("Put content resulted in {StatusCode}, body: {Body}",
 					putContentResponse.StatusCode.ToString(), await putContentResponse.Content.ReadAsStringAsync());
 				putContentResponse.EnsureSuccessStatusCode();
