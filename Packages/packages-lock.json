@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.beamable": {
-      "version": "1.11.0-PREVIEW.RC1",
+      "version": "0.0.0-PREVIEW.NIGHTLY-202301301817",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -15,11 +15,11 @@
       "url": "https://nexus.beamable.com/nexus/content/repositories/unity-all"
     },
     "com.beamable.server": {
-      "version": "1.11.0-PREVIEW.RC1",
+      "version": "0.0.0-PREVIEW.NIGHTLY-202301301817",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.beamable": "1.11.0-PREVIEW.RC1"
+        "com.beamable": "0.0.0-PREVIEW.NIGHTLY-202301301817"
       },
       "url": "https://nexus.beamable.com/nexus/content/repositories/unity-all"
     },

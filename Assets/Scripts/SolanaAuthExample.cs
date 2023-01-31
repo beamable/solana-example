@@ -28,7 +28,7 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private readonly PhantomWalletOptions _phantomWalletOptions = new() { appMetaDataUrl = "https://beamable.com" };
 	private IAuthService _authService;
-	
+
 	private Account _account;
 
 	private Account Account
@@ -57,11 +57,12 @@ public class SolanaAuthExample : MonoBehaviour
 
 	public async void Start()
 	{
-		Refresh();
+		Working = true;
 		
-
 		_ctx = BeamContext.Default;
 		await _ctx.OnReady;
+		
+		Working = false;
 
 		_authService = _ctx.Api.AuthService;
 
@@ -79,7 +80,7 @@ public class SolanaAuthExample : MonoBehaviour
 		_attachIdentityButton.interactable = !Working && WalletConnected && !WalletAttached;
 		_detachIdentityButton.interactable = !Working && WalletConnected && WalletAttached;
 		_authorizeButton.interactable = !Working && WalletConnected;
-		_getExternalIdentitiesButton.interactable = false;
+		_getExternalIdentitiesButton.interactable = !Working;
 
 		_publicKeyGroup.SetActive(WalletConnected);
 		_publicKeyValue.text = WalletConnected ? _account.PublicKey.Key : String.Empty;
@@ -133,6 +134,24 @@ public class SolanaAuthExample : MonoBehaviour
 	private async Promise GetExternalIdentities()
 	{
 		User user = await _authService.GetUser();
+
+		StringBuilder builder = new();
+
+		if (user != null && user.external.Count > 0)
+		{
+			foreach (ExternalIdentity identity in user.external)
+			{
+				builder.AppendLine($"{identity.providerService}, {identity.providerNamespace}, {identity.userId}");
+			}
+
+			Debug.Log(builder.ToString());
+		}
+		else
+		{
+			Debug.Log("No external identities found...");
+		}
+
+		Working = false;
 	}
 
 	private async Promise SendAttachRequest(ChallengeSolution challengeSolution = null)
@@ -153,7 +172,7 @@ public class SolanaAuthExample : MonoBehaviour
 			.Then(HandleAttachResponse)
 			.Error(HandleError);
 	}
-	
+
 	private async void HandleAttachResponse(AttachExternalIdentityResponse response)
 	{
 		switch (response.result)
@@ -226,7 +245,7 @@ public class SolanaAuthExample : MonoBehaviour
 		WalletAttached = false;
 		Working = false;
 	}
-	
+
 	private async Promise SendAuthorizeRequest(ChallengeSolution challengeSolution = null)
 	{
 		await _authService
@@ -247,13 +266,13 @@ public class SolanaAuthExample : MonoBehaviour
 		// }
 
 		// Temp
-		WalletAttached = false;
 		Working = false;
 	}
 
 	private void HandleError(Exception obj)
 	{
 		Debug.LogError(obj.Message);
+		Working = false;
 	}
 
 	public async Task Login()
