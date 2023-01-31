@@ -79,13 +79,14 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 			foreach (var newCurrency in currencies)
 			{
 				var currentAmount = GetCurrencyAmount(newCurrency.Key);
-
-				if (newCurrency.Value > currentAmount)
+				var newAmount = currentAmount + newCurrency.Value;
+				
+				if (newAmount > currentAmount)
 				{
 					var mint = mints.GetByContent(newCurrency.Key);
 					yield return new PlayerTokenInfo
 					{
-						Amount = newCurrency.Value - currentAmount,
+						Amount = newCurrency.Value,
 						ContentId = newCurrency.Key,
 						Mint = new PublicKey(mint.PublicKey),
 						TokenAccount = _tokens.FirstOrDefault(x => x.ContentId == newCurrency.Key)?.TokenAccount

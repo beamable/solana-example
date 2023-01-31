@@ -187,10 +187,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 
 			foreach (var newItem in newItems)
 			{
+				var propertyMap = newItem.properties.ToDictionary(x => x.name, x => x.value);
 				var mintAccount = new Account();
 				BeamableLogger.Log("Minting NFT {TokenAddress} for {ContentId}", mintAccount.PublicKey, newItem.contentId);
 
-				var mintExternalMetadata = NftExternalMetadata.Generate(newItem.properties, newItem.contentId);
+				var mintExternalMetadata = NftExternalMetadata.Generate(propertyMap, newItem.contentId);
 				var metadataUri = await NtfExternalMetadataService.SaveMetadata(beamableRequester, mintExternalMetadata);
 
 				AddNewMintInstructions(realmWallet, mintAccount, minBalanceForExemption, newItem.contentId, defaultCollection,
@@ -230,7 +231,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 					Mint = mintAccount.PublicKey,
 					ContentId = newItem.contentId,
 					TokenAccount = playerTokenAccount,
-					Properties = newItem.properties
+					Properties = propertyMap
 				});
 			}
 
