@@ -7,12 +7,10 @@ using Beamable.Microservices.SolanaFederation.Features.Authentication;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
 using Beamable.Microservices.SolanaFederation.Features.Collections;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
-using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Microservices.SolanaFederation.Models;
 using Beamable.Server;
-using Solana.Unity.Programs.Utilities;
 
 namespace Beamable.Microservices.SolanaFederation
 {
@@ -66,7 +64,7 @@ namespace Beamable.Microservices.SolanaFederation
 			});
 		}
 
-		[ClientCallable("inventory/state")]
+		[ClientCallable("solana/inventory/State")]
 		public async Task<InventoryProxyState> GetInventoryState(string id)
 		{
 			var db = await Storage.SolanaStorageDatabase();
@@ -82,7 +80,7 @@ namespace Beamable.Microservices.SolanaFederation
 			return playerTokenState.ToProxyState();
 		}
 
-		[ClientCallable("inventory/put")]
+		[ClientCallable("solana/inventory/Put")]
 		public async Task<InventoryProxyState> InventoryPut(string id, string transaction,
 			Dictionary<string, long> currencies, List<InventoryItem> newItems)
 		{
@@ -115,20 +113,6 @@ namespace Beamable.Microservices.SolanaFederation
 			await TransactionManager.Execute(realmWallet);
 
 			return playerTokenState.ToProxyState();
-		}
-
-		[ClientCallable("account/balance")]
-		public async Task<decimal> GetBalance(string publicKey)
-		{
-			var accountInfoResponse = await SolanaRpcClient.GetAccountInfoAsync(publicKey);
-			return SolHelper.ConvertToSol(accountInfoResponse.Lamports);
-		}
-
-		[ClientCallable("account/realm")]
-		public async Task<string> GetRealmAccount()
-		{
-			var realmWallet = await WalletService.GetOrCreateRealmWallet(await Storage.SolanaStorageDatabase());
-			return realmWallet.Account.PublicKey.Key;
 		}
 	}
 }
