@@ -25,22 +25,24 @@ namespace Beamable.Microservices.SolanaFederation
 		{
 			var storage = initializer.GetService<IStorageObjectConnectionProvider>();
 			var db = await storage.SolanaStorageDatabase();
-			
+
 			TransactionManager.InitTransaction();
 
 			// Fetch the realm wallet on service start for early initialization
 			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
 			TransactionManager.AddSigner(realmWallet.Account);
-			
+
 			// Fetch the default token collection on service start for early initialization
-			var _ = await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName, realmWallet);
-			
+			var _ = await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName,
+				realmWallet);
+
 			if (TransactionManager.HasInstructions())
 			{
 				await TransactionManager.Execute(realmWallet);
 			}
 		}
 
+		[ClientCallable("solana/authenticate")]
 		public Promise<FederatedAuthenticationResponse> Authenticate(string token, string challenge, string solution)
 		{
 			if (string.IsNullOrEmpty(token))
@@ -48,7 +50,7 @@ namespace Beamable.Microservices.SolanaFederation
 				BeamableLogger.LogError("We didn't receive a token (public key)");
 				throw new InvalidAuthenticationRequest("Token (public key) is required");
 			}
-
+		
 			if (!string.IsNullOrEmpty(challenge) && !string.IsNullOrEmpty(solution))
 			{
 				// Verify the solution
@@ -62,7 +64,7 @@ namespace Beamable.Microservices.SolanaFederation
 					challenge, token);
 				throw new UnauthorizedException();
 			}
-
+		
 			// Generate a challenge
 			return Promise<FederatedAuthenticationResponse>.Successful(new FederatedAuthenticationResponse
 			{
@@ -92,12 +94,12 @@ namespace Beamable.Microservices.SolanaFederation
 		{
 			BeamableLogger.Log("Processing start transaction request {TransactionId}", transaction);
 			var db = await Storage.SolanaStorageDatabase();
-			
+
 			TransactionManager.InitTransaction();
-			
+
 			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
 			TransactionManager.AddSigner(realmWallet.Account);
-			
+
 			var mints = new Mints(realmWallet, db);
 
 			// Load persisted content/mint mappings

@@ -22,14 +22,14 @@ public class SolanaAuthExample : MonoBehaviour
 	[SerializeField] private Button _connectWalletButton;
 	[SerializeField] private Button _attachIdentityButton;
 	[SerializeField] private Button _detachIdentityButton;
+	[SerializeField] private Button _authorizeButton;
 	[SerializeField] private Button _getExternalIdentitiesButton;
-
 	[SerializeField] private Federation _federation;
 
 	private readonly PhantomWalletOptions _phantomWalletOptions = new() { appMetaDataUrl = "https://beamable.com" };
-
-	private Account _account;
 	private IAuthService _authService;
+	
+	private Account _account;
 
 	private Account Account
 	{
@@ -40,13 +40,25 @@ public class SolanaAuthExample : MonoBehaviour
 		}
 	}
 
+	private bool _working;
+
+	private bool Working
+	{
+		get => _working;
+		set
+		{
+			_working = value;
+			Refresh();
+		}
+	}
+
 	private bool WalletConnected => _account != null;
 	private bool WalletAttached { get; set; } = false;
-	private bool Working { get; set; } = false;
 
 	public async void Start()
 	{
 		Refresh();
+		
 
 		_ctx = BeamContext.Default;
 		await _ctx.OnReady;
@@ -56,14 +68,17 @@ public class SolanaAuthExample : MonoBehaviour
 		_connectWalletButton.onClick.AddListener(OnConnectClicked);
 		_attachIdentityButton.onClick.AddListener(OnAttachClicked);
 		_detachIdentityButton.onClick.AddListener(OnDetachClicked);
+		_authorizeButton.onClick.AddListener(OnAuthorizeClicked);
 		_getExternalIdentitiesButton.onClick.AddListener(OnGetExternalClicked);
 	}
+
 
 	private void Refresh()
 	{
 		_connectWalletButton.interactable = !Working && !WalletConnected;
 		_attachIdentityButton.interactable = !Working && WalletConnected && !WalletAttached;
 		_detachIdentityButton.interactable = !Working && WalletConnected && WalletAttached;
+		_authorizeButton.interactable = !Working && WalletConnected;
 		_getExternalIdentitiesButton.interactable = false;
 
 		_publicKeyGroup.SetActive(WalletConnected);
@@ -74,8 +89,7 @@ public class SolanaAuthExample : MonoBehaviour
 	{
 		// Temp
 		Working = true;
-		Refresh();
-		
+
 		Debug.Log("Connecting to a wallet...");
 		await Login();
 	}
@@ -84,8 +98,7 @@ public class SolanaAuthExample : MonoBehaviour
 	{
 		// Temp
 		Working = true;
-		Refresh();
-		
+
 		Debug.Log("Attaching wallet...");
 		await SendAttachRequest();
 	}
@@ -94,18 +107,25 @@ public class SolanaAuthExample : MonoBehaviour
 	{
 		// Temp
 		Working = true;
-		Refresh();
-		
+
 		Debug.Log("Detaching wallet...");
 		await SendDetachRequest();
+	}
+
+	private async void OnAuthorizeClicked()
+	{
+		// Temp
+		Working = true;
+
+		Debug.Log("Authorizing external identity...");
+		await SendAuthorizeRequest();
 	}
 
 	private async void OnGetExternalClicked()
 	{
 		// Temp
 		Working = true;
-		Refresh();
-		
+
 		Debug.Log("Gettting external identities info...");
 		await GetExternalIdentities();
 	}
@@ -117,8 +137,6 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private async Promise SendAttachRequest(ChallengeSolution challengeSolution = null)
 	{
-		_attachIdentityButton.interactable = false;
-
 		StringBuilder builder = new StringBuilder();
 		builder.AppendLine("Sending a request with:");
 		builder.AppendLine($"Public key: {_account.PublicKey.Key}");
@@ -135,32 +153,7 @@ public class SolanaAuthExample : MonoBehaviour
 			.Then(HandleAttachResponse)
 			.Error(HandleError);
 	}
-
-	private async Promise SendDetachRequest()
-	{
-		await _authService.DetachIdentity(_federation.Service, 0.ToString(), _federation.Namespace)
-			.Then(HandleDetachResponse)
-			.Error(HandleError);
-	}
-
-	private void HandleDetachResponse(DetachExternalIdentityResponse response)
-	{
-		switch (response.result)
-		{
-			case "ok":
-				Debug.Log("Succesfully detached external identit y");
-				break;
-			default:
-				Debug.Log("Something gone wrong while detaching external identity");
-				break;
-		}
-		
-		// Temp
-		WalletAttached = false;
-		Working = false;
-		Refresh();
-	}
-
+	
 	private async void HandleAttachResponse(AttachExternalIdentityResponse response)
 	{
 		switch (response.result)
@@ -190,27 +183,72 @@ public class SolanaAuthExample : MonoBehaviour
 
 					await SendAttachRequest(solution);
 				}
+
 				break;
 			}
 			case "ok":
 				Debug.Log("Succesfully attached external identity");
-				
+
 				// Temp
 				WalletAttached = true;
 				Working = false;
-				Refresh();
-				
 				break;
 			default:
 				Debug.Log("Something gone wrong while attaching external identity");
-				
+
 				// Temp
 				WalletAttached = false;
 				Working = false;
-				Refresh();
-				
 				break;
 		}
+	}
+
+	private async Promise SendDetachRequest()
+	{
+		await _authService.DetachIdentity(_federation.Service, 0.ToString(), _federation.Namespace)
+			.Then(HandleDetachResponse)
+			.Error(HandleError);
+	}
+
+	private void HandleDetachResponse(DetachExternalIdentityResponse response)
+	{
+		switch (response.result)
+		{
+			case "ok":
+				Debug.Log("Succesfully detached external identity");
+				break;
+			default:
+				Debug.Log("Something gone wrong while detaching external identity");
+				break;
+		}
+
+		// Temp
+		WalletAttached = false;
+		Working = false;
+	}
+	
+	private async Promise SendAuthorizeRequest(ChallengeSolution challengeSolution = null)
+	{
+		await _authService
+			.AuthorizeExternalIdentity(_account.PublicKey.Key, _federation.Service, _federation.Namespace,
+				challengeSolution).Then(HandleAuthorizeResponse).Error(HandleError);
+	}
+
+	private void HandleAuthorizeResponse(ExternalAuthenticationResponse response)
+	{
+		// switch (response.result)
+		// {
+		// 	case "ok":
+		// 		Debug.Log("Succesfully detached external identit y");
+		// 		break;
+		// 	default:
+		// 		Debug.Log("Something gone wrong while detaching external identity");
+		// 		break;
+		// }
+
+		// Temp
+		WalletAttached = false;
+		Working = false;
 	}
 
 	private void HandleError(Exception obj)
@@ -229,6 +267,8 @@ public class SolanaAuthExample : MonoBehaviour
 		Debug.Log(_account != null
 			? $"Wallet connected with PublicKey: {_account.PublicKey.Key}"
 			: "Something gone wrong while connecting with a wallet");
+
+		Working = false;
 	}
 
 	private async Task<Account> LoginInGame()

@@ -20,15 +20,17 @@ public class WebGLTemplatesExporter {
     [UnityEditor.Callbacks.DidReloadScripts]
     private static void OnScriptsReloaded() {
         var destinationRootFolder = Path.GetFullPath("Assets/WebGLTemplates/");
-        var sourceRootFolder = Path.GetFullPath("Packages/com.solana.unity_sdk/Runtime/codebase/WebGLTemplates/");
+        var sourceRootFolder = Path.GetFullPath("Assets/Plugins/Solana.Unity.SDK-Stubs/Runtime/codebase/WebGLTemplates/");
 
-        if (!Directory.Exists("Assets/WebGLTemplates"))
+        if (!Directory.Exists(destinationRootFolder))
         {
-            Directory.CreateDirectory("Assets/WebGLTemplates");   
+            Directory.CreateDirectory(destinationRootFolder);   
         }
 
+        string[] templateFolders = Directory.GetDirectories(sourceRootFolder);
+
         // Iterate trough all the template folders in Packages/com.solana.unity_sdk/Runtime/codebase/WebGLTemplates/ and copy them over to Assets/WebGLTemplates
-        foreach (var templateFolder in Directory.GetDirectories("Packages/com.solana.unity_sdk/Runtime/codebase/WebGLTemplates"))
+        foreach (var templateFolder in templateFolders)
         {
             var templateName = Path.GetFileName(templateFolder);
             var sourceFolder = Path.Combine(sourceRootFolder, templateName);
@@ -39,12 +41,11 @@ public class WebGLTemplatesExporter {
                 Debug.Log($"Copying template from {sourceFolder} to {destinationFolder}");
                 FileUtil.CopyFileOrDirectory(sourceFolder, destinationFolder);
                 AssetDatabase.Refresh();
-                Debug.Log($"Setting webgl template, old was = {PlayerSettings.WebGL.template}");
+                Debug.Log($" Setting webgl template, old was = {PlayerSettings.WebGL.template}");
             }
 
         }
     }
-    
 }
 
 #endif
