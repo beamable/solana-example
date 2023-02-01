@@ -22,7 +22,6 @@ public class SolanaAuthExample : MonoBehaviour
 	[SerializeField] private Button _connectWalletButton;
 	[SerializeField] private Button _attachIdentityButton;
 	[SerializeField] private Button _detachIdentityButton;
-	[SerializeField] private Button _authorizeButton;
 	[SerializeField] private Button _getExternalIdentitiesButton;
 	[SerializeField] private Federation _federation;
 
@@ -52,35 +51,40 @@ public class SolanaAuthExample : MonoBehaviour
 		}
 	}
 
+	private bool _walletAttached;
+
+	private bool WalletAttached
+	{
+		get => _walletAttached;
+		set
+		{
+			_walletAttached = value;
+			Refresh();
+		}
+	}
+
 	private bool WalletConnected => _account != null;
-	private bool WalletAttached { get; set; } = false;
 
 	public async void Start()
 	{
 		Working = true;
-		
 		_ctx = BeamContext.Default;
 		await _ctx.OnReady;
-		
-		Working = false;
-
 		_authService = _ctx.Api.AuthService;
+		Working = false;
 
 		_connectWalletButton.onClick.AddListener(OnConnectClicked);
 		_attachIdentityButton.onClick.AddListener(OnAttachClicked);
 		_detachIdentityButton.onClick.AddListener(OnDetachClicked);
-		_authorizeButton.onClick.AddListener(OnAuthorizeClicked);
 		_getExternalIdentitiesButton.onClick.AddListener(OnGetExternalClicked);
 	}
-
 
 	private void Refresh()
 	{
 		_connectWalletButton.interactable = !Working && !WalletConnected;
 		_attachIdentityButton.interactable = !Working && WalletConnected && !WalletAttached;
 		_detachIdentityButton.interactable = !Working && WalletConnected && WalletAttached;
-		_authorizeButton.interactable = !Working && WalletConnected;
-		_getExternalIdentitiesButton.interactable = !Working;
+		_getExternalIdentitiesButton.interactable = !Working && WalletConnected;
 
 		_publicKeyGroup.SetActive(WalletConnected);
 		_publicKeyValue.text = WalletConnected ? _account.PublicKey.Key : String.Empty;
@@ -93,6 +97,11 @@ public class SolanaAuthExample : MonoBehaviour
 
 		Debug.Log("Connecting to a wallet...");
 		await Login();
+
+		if (WalletConnected)
+		{
+			WalletAttached = await CheckIfAttached();
+		}
 	}
 
 	private async void OnAttachClicked()
@@ -102,6 +111,7 @@ public class SolanaAuthExample : MonoBehaviour
 
 		Debug.Log("Attaching wallet...");
 		await SendAttachRequest();
+		WalletAttached = await CheckIfAttached();
 	}
 
 	private async void OnDetachClicked()
@@ -111,15 +121,7 @@ public class SolanaAuthExample : MonoBehaviour
 
 		Debug.Log("Detaching wallet...");
 		await SendDetachRequest();
-	}
-
-	private async void OnAuthorizeClicked()
-	{
-		// Temp
-		Working = true;
-
-		Debug.Log("Authorizing external identity...");
-		await SendAuthorizeRequest();
+		WalletAttached = await CheckIfAttached();
 	}
 
 	private async void OnGetExternalClicked()
@@ -131,32 +133,9 @@ public class SolanaAuthExample : MonoBehaviour
 		await GetExternalIdentities();
 	}
 
-	private async Promise GetExternalIdentities()
-	{
-		User user = await _authService.GetUser();
-
-		StringBuilder builder = new();
-
-		if (user != null && user.external.Count > 0)
-		{
-			foreach (ExternalIdentity identity in user.external)
-			{
-				builder.AppendLine($"{identity.providerService}, {identity.providerNamespace}, {identity.userId}");
-			}
-
-			Debug.Log(builder.ToString());
-		}
-		else
-		{
-			Debug.Log("No external identities found...");
-		}
-
-		Working = false;
-	}
-
 	private async Promise SendAttachRequest(ChallengeSolution challengeSolution = null)
 	{
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new();
 		builder.AppendLine("Sending a request with:");
 		builder.AppendLine($"Public key: {_account.PublicKey.Key}");
 		builder.AppendLine($"Provider service: {_federation.Service}");
@@ -224,9 +203,21 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private async Promise SendDetachRequest()
 	{
-		await _authService.DetachIdentity(_federation.Service, 0.ToString(), _federation.Namespace)
+		await _authService.DetachIdentity(_federation.Service, _account.PublicKey, _federation.Namespace)
 			.Then(HandleDetachResponse)
 			.Error(HandleError);
+	}
+
+	private async Promise<bool> CheckIfAttached()
+	{
+		User user = await _authService.GetUser();
+
+		if (user == null || user.external.Count <= 0) return false;
+
+		ExternalIdentity externalIdentity = user.external.Find(i =>
+			i.providerNamespace == _federation.Namespace && i.providerService == _federation.Service &&
+			i.userId == _account.PublicKey);
+		return externalIdentity != null;
 	}
 
 	private void HandleDetachResponse(DetachExternalIdentityResponse response)
@@ -246,26 +237,26 @@ public class SolanaAuthExample : MonoBehaviour
 		Working = false;
 	}
 
-	private async Promise SendAuthorizeRequest(ChallengeSolution challengeSolution = null)
+	private async Promise GetExternalIdentities()
 	{
-		await _authService
-			.AuthorizeExternalIdentity(_account.PublicKey.Key, _federation.Service, _federation.Namespace,
-				challengeSolution).Then(HandleAuthorizeResponse).Error(HandleError);
-	}
+		User user = await _authService.GetUser();
 
-	private void HandleAuthorizeResponse(ExternalAuthenticationResponse response)
-	{
-		// switch (response.result)
-		// {
-		// 	case "ok":
-		// 		Debug.Log("Succesfully detached external identit y");
-		// 		break;
-		// 	default:
-		// 		Debug.Log("Something gone wrong while detaching external identity");
-		// 		break;
-		// }
+		StringBuilder builder = new();
 
-		// Temp
+		if (user != null && user.external.Count > 0)
+		{
+			foreach (ExternalIdentity identity in user.external)
+			{
+				builder.AppendLine($"Service: {identity.providerService}, namespace: {identity.providerNamespace}, public key: {identity.userId}");
+			}
+
+			Debug.Log(builder.ToString());
+		}
+		else
+		{
+			Debug.Log("No external identities found...");
+		}
+
 		Working = false;
 	}
 
