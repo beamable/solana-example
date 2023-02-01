@@ -6,6 +6,7 @@ using Beamable.Api.Auth;
 using Beamable.Common;
 using Beamable.Common.Api.Auth;
 using Beamable.Common.Content;
+using Solana.Unity.Rpc;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet.Bip39;
 using TMPro;
@@ -25,7 +26,12 @@ public class SolanaAuthExample : MonoBehaviour
 	[SerializeField] private Button _getExternalIdentitiesButton;
 	[SerializeField] private Federation _federation;
 
+	[SerializeField] private LogEntry _logEntryPrefab;
+	[SerializeField] private Transform _logsParent;
+	[SerializeField] private GameObject _logger;
+
 	private readonly PhantomWalletOptions _phantomWalletOptions = new() { appMetaDataUrl = "https://beamable.com" };
+	private readonly IRpcClient _rpcClient = ClientFactory.GetClient(Cluster.DevNet);
 	private IAuthService _authService;
 
 	private Account _account;
@@ -65,8 +71,14 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private bool WalletConnected => _account != null;
 
+	private WalletBase _wallet;
+
 	public async void Start()
 	{
+#if UNITY_EDITOR
+		_logger.SetActive(false);
+#endif
+
 		Working = true;
 		_ctx = BeamContext.Default;
 		await _ctx.OnReady;
@@ -81,11 +93,17 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private void Refresh()
 	{
+#if UNITY_EDITOR
 		_connectWalletButton.interactable = !Working && !WalletConnected;
 		_attachIdentityButton.interactable = !Working && WalletConnected && !WalletAttached;
 		_detachIdentityButton.interactable = !Working && WalletConnected && WalletAttached;
 		_getExternalIdentitiesButton.interactable = !Working && WalletConnected;
-
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL
+		_connectWalletButton.interactable = !Working && !WalletConnected;
+		_attachIdentityButton.gameObject.SetActive(false);
+		_detachIdentityButton.gameObject.SetActive(false);
+		_getExternalIdentitiesButton.gameObject.SetActive(false);
+#endif
 		_publicKeyGroup.SetActive(WalletConnected);
 		_publicKeyValue.text = WalletConnected ? _account.PublicKey.Key : String.Empty;
 	}
@@ -95,7 +113,7 @@ public class SolanaAuthExample : MonoBehaviour
 		// Temp
 		Working = true;
 
-		Debug.Log("Connecting to a wallet...");
+		Log("Connecting to a wallet...");
 		await Login();
 
 		if (WalletConnected)
@@ -109,7 +127,7 @@ public class SolanaAuthExample : MonoBehaviour
 		// Temp
 		Working = true;
 
-		Debug.Log("Attaching wallet...");
+		Log("Attaching wallet...");
 		await SendAttachRequest();
 		WalletAttached = await CheckIfAttached();
 	}
@@ -119,7 +137,7 @@ public class SolanaAuthExample : MonoBehaviour
 		// Temp
 		Working = true;
 
-		Debug.Log("Detaching wallet...");
+		Log("Detaching wallet...");
 		await SendDetachRequest();
 		WalletAttached = await CheckIfAttached();
 	}
@@ -129,7 +147,7 @@ public class SolanaAuthExample : MonoBehaviour
 		// Temp
 		Working = true;
 
-		Debug.Log("Gettting external identities info...");
+		Log("Gettting external identities info...");
 		await GetExternalIdentities();
 	}
 
@@ -144,7 +162,7 @@ public class SolanaAuthExample : MonoBehaviour
 			builder.AppendLine($"Signed solution: {challengeSolution.solution}");
 		}
 
-		Debug.Log(builder.ToString());
+		Log(builder.ToString());
 
 		await _authService
 			.AttachIdentity(_account.PublicKey.Key, _federation.Service, _federation.Namespace, challengeSolution)
@@ -160,22 +178,23 @@ public class SolanaAuthExample : MonoBehaviour
 			{
 				if (!string.IsNullOrEmpty(response.challenge_token))
 				{
-					Debug.Log($"Received challenge token: {response.challenge_token}");
+					Log($"Received challenge token: {response.challenge_token}");
 
 					ChallengeToken challengeToken = _authService.ParseChallengeToken(response.challenge_token);
 					byte[] challengeTokenBytes = Convert.FromBase64String(challengeToken.challenge);
 
-					Debug.Log("Signing challenge token...");
+					Log("Signing challenge token...");
+
 					byte[] signature = _account.Sign(challengeTokenBytes);
 					string signedSignature = Convert.ToBase64String(signature);
-					Debug.Log($"Signed signature: {signedSignature}");
+					Log($"Signed signature: {signedSignature}");
 
 					ChallengeSolution solution = new ChallengeSolution
 					{
 						challenge_token = response.challenge_token, solution = signedSignature
 					};
 
-					Debug.Log(
+					Log(
 						$"Sending a request with PublicKey: {_account.PublicKey.Key}, " +
 						$"ProviderService: {_federation.Service}, ProviderNamespace: {_federation.Namespace}");
 
@@ -185,14 +204,14 @@ public class SolanaAuthExample : MonoBehaviour
 				break;
 			}
 			case "ok":
-				Debug.Log("Succesfully attached external identity");
+				Log("Succesfully attached external identity");
 
 				// Temp
 				WalletAttached = true;
 				Working = false;
 				break;
 			default:
-				Debug.Log("Something gone wrong while attaching external identity");
+				Log("Something gone wrong while attaching external identity");
 
 				// Temp
 				WalletAttached = false;
@@ -225,10 +244,10 @@ public class SolanaAuthExample : MonoBehaviour
 		switch (response.result)
 		{
 			case "ok":
-				Debug.Log("Succesfully detached external identity");
+				Log("Succesfully detached external identity");
 				break;
 			default:
-				Debug.Log("Something gone wrong while detaching external identity");
+				Log("Something gone wrong while detaching external identity");
 				break;
 		}
 
@@ -247,14 +266,15 @@ public class SolanaAuthExample : MonoBehaviour
 		{
 			foreach (ExternalIdentity identity in user.external)
 			{
-				builder.AppendLine($"Service: {identity.providerService}, namespace: {identity.providerNamespace}, public key: {identity.userId}");
+				builder.AppendLine(
+					$"Service: {identity.providerService}, namespace: {identity.providerNamespace}, public key: {identity.userId}");
 			}
 
-			Debug.Log(builder.ToString());
+			Log(builder.ToString());
 		}
 		else
 		{
-			Debug.Log("No external identities found...");
+			Log("No external identities found...");
 		}
 
 		Working = false;
@@ -262,7 +282,7 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private void HandleError(Exception obj)
 	{
-		Debug.LogError(obj.Message);
+		Log(obj.Message);
 		Working = false;
 	}
 
@@ -270,11 +290,11 @@ public class SolanaAuthExample : MonoBehaviour
 	{
 #if UNITY_EDITOR
 		Account = await LoginInGame();
-#elif (UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL)
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL
 		Account = await LoginPhantom();
 #endif
 
-		Debug.Log(_account != null
+		Log(_account != null
 			? $"Wallet connected with PublicKey: {_account.PublicKey.Key}"
 			: "Something gone wrong while connecting with a wallet");
 
@@ -283,15 +303,25 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private async Task<Account> LoginInGame()
 	{
-		var inGameWallet = new InGameWallet(RpcCluster.DevNet, null, true);
+		_wallet = new InGameWallet();
 
 		var newMnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
-		return await inGameWallet.Login("1234") ?? await inGameWallet.CreateAccount(newMnemonic.ToString(), "1234");
+		return await _wallet.Login("1234") ?? await _wallet.CreateAccount(newMnemonic.ToString(), "1234");
 	}
 
 	private async Task<Account> LoginPhantom()
 	{
-		var phantomWallet = new PhantomWallet(_phantomWalletOptions, RpcCluster.DevNet, string.Empty, true);
-		return await phantomWallet.Login();
+		_wallet = new PhantomWallet(_phantomWalletOptions);
+		return await _wallet.Login();
+	}
+
+	private void Log(string message)
+	{
+#if UNITY_EDITOR
+		Debug.Log(message);
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL
+		LogEntry logEntry = Instantiate(_logEntryPrefab, _logsParent, false);
+		logEntry.Setup(message);
+#endif
 	}
 }
