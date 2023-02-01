@@ -35,7 +35,6 @@ namespace Beamable.Microservices.SolanaFederation
 			if (TransactionManager.HasInstructions()) await TransactionManager.Execute(realmWallet);
 		}
 		
-		[ClientCallable("solana/authenticate")]
 		public Promise<FederatedAuthenticationResponse> Authenticate(string token, string challenge, string solution)
 		{
 			if (string.IsNullOrEmpty(token))
