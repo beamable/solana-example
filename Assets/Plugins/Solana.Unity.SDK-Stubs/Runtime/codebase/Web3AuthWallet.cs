@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Merkator.Tools;
 using Solana.Unity.Wallet;
@@ -107,7 +108,13 @@ namespace Solana.Unity.SDK
             transaction.Sign(Account);
             return Task.FromResult(transaction);
         }
-        
+
+        public override Task<byte[]> SignMessage(string message)
+        {
+            var encodedMessage = Encoding.UTF8.GetBytes(message);
+            return Task.FromResult(Account.Sign(encodedMessage));
+        }
+
         public Task<Account> LoginWithProvider(Provider provider)
         {
             _loginProvider = provider;

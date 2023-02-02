@@ -56,6 +56,13 @@ namespace Solana.Unity.SDK
                 return _internalWallet.SignTransaction(transaction);
             throw new NotImplementedException();
         }
+        
+        public override Task<byte[]> SignMessage(string message)
+        {
+            if (_internalWallet != null)
+                return _internalWallet.SignMessage(message);
+            throw new NotImplementedException();
+        }
 
         protected override Task<Account> _CreateAccount(string mnemonic = null, string password = null)
         {

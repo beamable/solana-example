@@ -48,7 +48,12 @@ namespace Solana.Unity.SDK
             ExternSignTransactionXNFT(encode, OnTransactionSigned);
             return _signedTransactionTaskCompletionSource.Task;
         }
-        
+
+        public override Task<byte[]> SignMessage(string message)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override Task<Account> _CreateAccount(string mnemonic = null, string password = null)
         {
             throw new NotImplementedException();
