@@ -113,7 +113,7 @@ public class SolanaAuthExample : MonoBehaviour
 		Debug.Log("Signing...");
 		
 		var message = "hello world";
-		var signatureBytes = await _wallet.SignMessage(message);
+		var signatureBytes = await _wallet.SignMessage(Encoding.UTF8.GetBytes(message));
 		var signatureString = Convert.ToBase64String(signatureBytes);
 		
 		Debug.Log($"Signature (base64): {signatureString}");
@@ -182,7 +182,7 @@ public class SolanaAuthExample : MonoBehaviour
 					var challenge = Encoding.UTF8.GetString(challengeBytes); 
 
 					Debug.Log($"Signing challenge {challenge}");
-					byte[] signatureBytes = await _wallet.SignMessage(challenge);
+					byte[] signatureBytes = await _wallet.SignMessage(challengeBytes);
 					string signatureBase64 = Convert.ToBase64String(signatureBytes);
 					Debug.Log($"Signature: {signatureBase64}");
 
