@@ -193,7 +193,7 @@ namespace Solana.Unity.SDK
         public abstract Task<Transaction> SignTransaction(Transaction transaction);
         
         /// <inheritdoc />
-        public abstract Task<byte[]> SignMessage(string message);
+        public abstract Task<byte[]> SignMessage(byte[] message);
 
         /// <inheritdoc />
         public virtual async Task<RequestResult<string>> SignAndSendTransaction
