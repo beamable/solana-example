@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Common.Api;
+using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Collections;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Models;
@@ -11,7 +12,6 @@ using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
-using Beamable.Microservices.SolanaFederation.Models;
 using MongoDB.Driver;
 using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;
@@ -167,7 +167,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			TransactionManager.AddSigner(mintAccount);
 		}
 
-		public async Task<List<PlayerTokenInfo>> MintNewItems(List<InventoryItem> newItems, Wallet realmWallet,
+		public async Task<List<PlayerTokenInfo>> MintNewItems(List<ItemCreateRequest> newItems, Wallet realmWallet,
 			IMongoDatabase db,
 			string playerWalletAddress, IBeamableRequester beamableRequester)
 		{
@@ -187,7 +187,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 
 			foreach (var newItem in newItems)
 			{
-				var propertyMap = newItem.properties.ToDictionary(x => x.name, x => x.value);
+				var propertyMap = newItem.properties;
 				var mintAccount = new Account();
 				BeamableLogger.Log("Minting NFT {TokenAddress} for {ContentId}", mintAccount.PublicKey, newItem.contentId);
 

@@ -9,13 +9,12 @@ using Beamable.Microservices.SolanaFederation.Features.Collections;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
-using Beamable.Microservices.SolanaFederation.Models;
 using Beamable.Server;
 
 namespace Beamable.Microservices.SolanaFederation
 {
 	[Microservice("SolanaFederation")]
-	public class SolanaFederation : Microservice, IFederatedLogin<SolanaCloudIdentity>
+	public class SolanaFederation : Microservice, IFederatedInventory<SolanaCloudIdentity>
 	{
 		[InitializeServices]
 		public static async Task Initialize(IServiceInitializer initializer)
@@ -64,25 +63,7 @@ namespace Beamable.Microservices.SolanaFederation
 			});
 		}
 
-		[ClientCallable("solana/inventory/State")]
-		public async Task<InventoryProxyState> GetInventoryState(string id)
-		{
-			var db = await Storage.SolanaStorageDatabase();
-			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
-			var mints = new Mints(realmWallet, db);
-
-			// Load persisted content/mint mappings
-			await mints.LoadPersisted();
-
-			// Compute the current player token state
-			var playerTokenState = await PlayerTokenState.Compute(id, mints);
-
-			return playerTokenState.ToProxyState();
-		}
-
-		[ClientCallable("solana/inventory/Put")]
-		public async Task<InventoryProxyState> InventoryPut(string id, string transaction,
-			Dictionary<string, long> currencies, List<InventoryItem> newItems)
+		public async Promise<FederatedInventoryProxyState> StartInventoryTransaction(string id, string transaction, Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
 		{
 			BeamableLogger.Log("Processing start transaction request {TransactionId}", transaction);
 			var db = await Storage.SolanaStorageDatabase();
@@ -111,6 +92,21 @@ namespace Beamable.Microservices.SolanaFederation
 			playerTokenState.MergeIn(newCurrencyTokens);
 
 			await TransactionManager.Execute(realmWallet);
+
+			return playerTokenState.ToProxyState();
+		}
+
+		async Promise<FederatedInventoryProxyState> IFederatedInventory<SolanaCloudIdentity>.GetInventoryState(string id)
+		{
+			var db = await Storage.SolanaStorageDatabase();
+			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
+			var mints = new Mints(realmWallet, db);
+
+			// Load persisted content/mint mappings
+			await mints.LoadPersisted();
+
+			// Compute the current player token state
+			var playerTokenState = await PlayerTokenState.Compute(id, mints);
 
 			return playerTokenState.ToProxyState();
 		}

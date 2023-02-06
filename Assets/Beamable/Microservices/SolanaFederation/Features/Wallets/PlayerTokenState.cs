@@ -114,7 +114,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 			return this;
 		}
 
-		public InventoryProxyState ToProxyState()
+		public FederatedInventoryProxyState ToProxyState()
 		{
 			var tokens = _tokens.Where(x => x.Amount > 0).ToList();
 			var currencies = tokens
@@ -126,10 +126,10 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 				.GroupBy(x => x.ContentId)
 				.ToList();
 
-			return new InventoryProxyState
+			return new FederatedInventoryProxyState
 			{
 				currencies = currencies.ToDictionary(x => x.ContentId, x => decimal.ToInt64(x.Amount)),
-				items = items.ToDictionary(x => x.Key, x => x.Select(gv => new ItemProxy
+				items = items.ToDictionary(x => x.Key, x => x.Select(gv => new FederatedItemProxy
 				{
 					proxyId = gv.Mint.Key,
 					properties = gv.Properties.Select(p => new ItemProperty
