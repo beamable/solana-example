@@ -59,7 +59,7 @@ namespace Beamable.Microservices.SolanaFederation
 			// Generate a challenge
 			return Promise<FederatedAuthenticationResponse>.Successful(new FederatedAuthenticationResponse
 			{
-				challenge = Guid.NewGuid().ToString(), challenge_ttl = Configuration.AuthenticationChallengeTtlSec
+				challenge = $"Please sign this random message to authenticate, {Guid.NewGuid()}", challenge_ttl = Configuration.AuthenticationChallengeTtlSec
 			});
 		}
 
