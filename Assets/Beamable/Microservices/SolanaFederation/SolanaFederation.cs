@@ -46,7 +46,7 @@ namespace Beamable.Microservices.SolanaFederation
 			{
 				// Verify the solution
 				if (AuthenticationService.IsSignatureValid(token, challenge, solution))
-					// User identity confirmed
+					// User identity is confirmed
 					return Promise<FederatedAuthenticationResponse>.Successful(new FederatedAuthenticationResponse
 						{ user_id = token });
 				// Signature is invalid, user identity isn't confirmed
@@ -71,6 +71,7 @@ namespace Beamable.Microservices.SolanaFederation
 			TransactionManager.InitTransaction();
 
 			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
+			// All mints are initiated using the realm wallet so it needs to sign every transaction
 			TransactionManager.AddSigner(realmWallet.Account);
 
 			var mints = new Mints(realmWallet, db);
@@ -91,12 +92,14 @@ namespace Beamable.Microservices.SolanaFederation
 			var newCurrencyTokens = await mints.MintNewCurrency(id, currencies, realmWallet, playerTokenState);
 			playerTokenState.MergeIn(newCurrencyTokens);
 
+			// Execute the transaction
 			await TransactionManager.Execute(realmWallet);
 
+			// Return the new federated state
 			return playerTokenState.ToProxyState();
 		}
 
-		async Promise<FederatedInventoryProxyState> IFederatedInventory<SolanaCloudIdentity>.GetInventoryState(string id)
+		public async Promise<FederatedInventoryProxyState> GetInventoryState(string id)
 		{
 			var db = await Storage.SolanaStorageDatabase();
 			var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
@@ -108,6 +111,7 @@ namespace Beamable.Microservices.SolanaFederation
 			// Compute the current player token state
 			var playerTokenState = await PlayerTokenState.Compute(id, mints);
 
+			// Return the federated state
 			return playerTokenState.ToProxyState();
 		}
 	}
