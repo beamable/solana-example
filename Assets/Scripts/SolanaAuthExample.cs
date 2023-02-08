@@ -6,6 +6,8 @@ using Beamable.Api.Auth;
 using Beamable.Common;
 using Beamable.Common.Api.Auth;
 using Beamable.Common.Content;
+using Beamable.Player;
+using Beamable.Server.Clients;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet.Bip39;
 using TMPro;
@@ -17,14 +19,18 @@ public class SolanaAuthExample : MonoBehaviour
 {
 	private BeamContext _ctx;
 
-	[SerializeField] private GameObject _publicKeyGroup;
-	[SerializeField] private TextMeshProUGUI _publicKeyValue;
+	[SerializeField] private TextMeshProUGUI _beamId;
+	[SerializeField] private TextMeshProUGUI _walletId;
+
 	[SerializeField] private Button _connectWalletButton;
 	[SerializeField] private Button _attachIdentityButton;
 	[SerializeField] private Button _detachIdentityButton;
 	[SerializeField] private Button _getExternalIdentitiesButton;
 	[SerializeField] private Button _signMessageButton;
+
 	[SerializeField] private Federation _federation;
+	[SerializeField] private Transform _logsParent;
+
 
 	private readonly PhantomWalletOptions _phantomWalletOptions = new() { appMetaDataUrl = "https://beamable.com" };
 	private WalletBase _wallet;
@@ -69,10 +75,12 @@ public class SolanaAuthExample : MonoBehaviour
 
 	public async void Start()
 	{
-		Working = true;
 		_ctx = BeamContext.Default;
-		await _ctx.OnReady;
 		_authService = _ctx.Api.AuthService;
+
+		Working = true;
+		await _ctx.OnReady;
+		await _ctx.Accounts.OnReady;
 		Working = false;
 
 		_connectWalletButton.onClick.AddListener(OnConnectClicked);
@@ -80,6 +88,8 @@ public class SolanaAuthExample : MonoBehaviour
 		_detachIdentityButton.onClick.AddListener(OnDetachClicked);
 		_getExternalIdentitiesButton.onClick.AddListener(OnGetExternalClicked);
 		_signMessageButton.onClick.AddListener(OnSignClicked);
+
+		_beamId.text = _ctx.Accounts.Current.GamerTag.ToString();
 	}
 
 	private void Refresh()
@@ -87,141 +97,115 @@ public class SolanaAuthExample : MonoBehaviour
 		_connectWalletButton.interactable = !Working && !WalletConnected;
 		_attachIdentityButton.interactable = !Working && WalletConnected && !WalletAttached;
 		_detachIdentityButton.interactable = !Working && WalletConnected && WalletAttached;
+
 		_getExternalIdentitiesButton.interactable = !Working && WalletConnected;
 		_signMessageButton.interactable = !Working && WalletConnected;
 
-		_publicKeyGroup.SetActive(WalletConnected);
-		_publicKeyValue.text = WalletConnected ? _account.PublicKey.Key : String.Empty;
+		_walletId.text = WalletConnected ? _account.PublicKey.Key : String.Empty;
 	}
 
 	private async void OnConnectClicked()
 	{
-		// Temp
 		Working = true;
 
-		Debug.Log("Connecting to a wallet...");
+		Log("Connecting to a wallet...");
 		await Login();
-
 		if (WalletConnected)
 		{
 			WalletAttached = await CheckIfAttached();
 		}
+
+		Working = false;
+	}
+
+	private async void OnAttachClicked()
+	{
+		Working = true;
+		Log("Attaching wallet...");
+		await SendAttachRequest();
+		WalletAttached = await CheckIfAttached();
+		Working = false;
+
+		async Promise SendAttachRequest(ChallengeSolution challengeSolution = null)
+		{
+			StringBuilder builder = new();
+			builder.AppendLine("Sending a request with:");
+			builder.AppendLine($"Public key: {_account.PublicKey.Key}");
+			builder.AppendLine($"Provider service: {_federation.Service}");
+			if (challengeSolution != null)
+			{
+				builder.AppendLine($"Signed solution: {challengeSolution.solution}");
+			}
+
+			Log(builder.ToString());
+
+			RegistrationResult result =
+				await _ctx.Accounts.AddExternalIdentity<SolanaCloudIdentity, SolanaFederationClient>(
+					_account.PublicKey.Key, ChallengeHandler);
+		}
+	}
+
+
+	private async void OnDetachClicked()
+	{
+		Working = true;
+		Log("Detaching wallet...");
+		await _ctx.Accounts.RemoveExternalIdentity<SolanaCloudIdentity, SolanaFederationClient>();
+		WalletAttached = await CheckIfAttached();
+		Working = false;
 	}
 
 	private async void OnSignClicked()
 	{
-		Debug.Log("Signing...");
-		
-		var message = "hello world";
-		var signatureBytes = await _wallet.SignMessage(Encoding.UTF8.GetBytes(message));
-		var signatureString = Convert.ToBase64String(signatureBytes);
-		
-		Debug.Log($"Signature (base64): {signatureString}");
-	}
-	
-	private async void OnAttachClicked()
-	{
-		// Temp
 		Working = true;
-
-		Debug.Log("Attaching wallet...");
-		await SendAttachRequest();
-		WalletAttached = await CheckIfAttached();
-	}
-
-	private async void OnDetachClicked()
-	{
-		// Temp
-		Working = true;
-
-		Debug.Log("Detaching wallet...");
-		await SendDetachRequest();
-		WalletAttached = await CheckIfAttached();
+		Log("Signing a message...");
+		string message = "Sample message to sign";
+		byte[] signatureBytes = await _wallet.SignMessage(Encoding.UTF8.GetBytes(message));
+		string signedSignature = Convert.ToBase64String(signatureBytes);
+		Log($"Signature (base64): {signedSignature}");
+		Working = false;
 	}
 
 	private async void OnGetExternalClicked()
 	{
-		// Temp
 		Working = true;
-
-		Debug.Log("Gettting external identities info...");
+		Log("Gettting external identities info...");
 		await GetExternalIdentities();
-	}
+		Working = false;
 
-	private async Promise SendAttachRequest(ChallengeSolution challengeSolution = null)
-	{
-		StringBuilder builder = new();
-		builder.AppendLine("Sending a request with:");
-		builder.AppendLine($"Public key: {_account.PublicKey.Key}");
-		builder.AppendLine($"Provider service: {_federation.Service}");
-		if (challengeSolution != null)
+		async Promise GetExternalIdentities()
 		{
-			builder.AppendLine($"Signed solution: {challengeSolution.solution}");
-		}
-
-		Debug.Log(builder.ToString());
-
-		await _authService
-			.AttachIdentity(_account.PublicKey.Key, _federation.Service, _federation.Namespace, challengeSolution)
-			.Then(HandleAttachResponse)
-			.Error(HandleError);
-	}
-
-	private async void HandleAttachResponse(AttachExternalIdentityResponse response)
-	{
-		switch (response.result)
-		{
-			case "challenge":
+			User user = await _authService.GetUser();
+			StringBuilder builder = new();
+			if (user != null && user.external.Count > 0)
 			{
-				if (!string.IsNullOrEmpty(response.challenge_token))
+				foreach (ExternalIdentity identity in user.external)
 				{
-					Debug.Log($"Received challenge token: {response.challenge_token}");
-
-					ChallengeToken challengeToken = _authService.ParseChallengeToken(response.challenge_token);
-					byte[] challengeBytes = Convert.FromBase64String(challengeToken.challenge);
-					var challenge = Encoding.UTF8.GetString(challengeBytes); 
-
-					Debug.Log($"Signing challenge {challenge}");
-					byte[] signatureBytes = await _wallet.SignMessage(challengeBytes);
-					string signatureBase64 = Convert.ToBase64String(signatureBytes);
-					Debug.Log($"Signature: {signatureBase64}");
-
-					ChallengeSolution solution = new ChallengeSolution
-					{
-						challenge_token = response.challenge_token, solution = signatureBase64
-					};
-
-					Debug.Log(
-						$"Sending a request with PublicKey: {_account.PublicKey.Key}, " +
-						$"ProviderService: {_federation.Service}, ProviderNamespace: {_federation.Namespace}");
-
-					await SendAttachRequest(solution);
+					builder.AppendLine(
+						$"Service: {identity.providerService}, namespace: {identity.providerNamespace}, public key: {identity.userId}");
 				}
 
-				break;
+				Log(builder.ToString());
 			}
-			case "ok":
-				Debug.Log("Successfully attached external identity");
-
-				// Temp
-				WalletAttached = true;
-				Working = false;
-				break;
-			default:
-				Debug.Log("Something gone wrong while attaching external identity");
-
-				// Temp
-				WalletAttached = false;
-				Working = false;
-				break;
+			else
+			{
+				Log("No external identities found...");
+			}
 		}
 	}
 
-	private async Promise SendDetachRequest()
+	private async Promise<string> ChallengeHandler(string challengeToken)
 	{
-		await _authService.DetachIdentity(_federation.Service, _account.PublicKey, _federation.Namespace)
-			.Then(HandleDetachResponse)
-			.Error(HandleError);
+		ChallengeToken parsedToken = _authService.ParseChallengeToken(challengeToken);
+		byte[] challengeBytes = Convert.FromBase64String(parsedToken.challenge);
+		string challenge = Encoding.UTF8.GetString(challengeBytes);
+
+		Log($"Signing a challenge {challenge}");
+		byte[] signatureBytes = await _wallet.SignMessage(challengeBytes);
+		string signedSignature = Convert.ToBase64String(signatureBytes);
+		Log($"Signed signature: {signedSignature}");
+
+		return signedSignature;
 	}
 
 	private async Promise<bool> CheckIfAttached()
@@ -236,52 +220,6 @@ public class SolanaAuthExample : MonoBehaviour
 		return externalIdentity != null;
 	}
 
-	private void HandleDetachResponse(DetachExternalIdentityResponse response)
-	{
-		switch (response.result)
-		{
-			case "ok":
-				Debug.Log("Succesfully detached external identity");
-				break;
-			default:
-				Debug.Log("Something gone wrong while detaching external identity");
-				break;
-		}
-
-		// Temp
-		WalletAttached = false;
-		Working = false;
-	}
-
-	private async Promise GetExternalIdentities()
-	{
-		User user = await _authService.GetUser();
-
-		StringBuilder builder = new();
-
-		if (user != null && user.external.Count > 0)
-		{
-			foreach (ExternalIdentity identity in user.external)
-			{
-				builder.AppendLine($"Service: {identity.providerService}, namespace: {identity.providerNamespace}, public key: {identity.userId}");
-			}
-
-			Debug.Log(builder.ToString());
-		}
-		else
-		{
-			Debug.Log("No external identities found...");
-		}
-
-		Working = false;
-	}
-
-	private void HandleError(Exception obj)
-	{
-		Debug.LogError(obj.Message);
-		Working = false;
-	}
-
 	public async Task Login()
 	{
 #if UNITY_EDITOR
@@ -290,18 +228,16 @@ public class SolanaAuthExample : MonoBehaviour
 		Account = await LoginPhantom();
 #endif
 
-		Debug.Log(_account != null
+		Log(_account != null
 			? $"Wallet connected with PublicKey: {_account.PublicKey.Key}"
 			: "Something gone wrong while connecting with a wallet");
-
-		Working = false;
 	}
 
 	private async Task<Account> LoginInGame()
 	{
 		_wallet = new InGameWallet(RpcCluster.DevNet, null, true);
 
-		var newMnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
+		Mnemonic newMnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
 		return await _wallet.Login("1234") ?? await _wallet.CreateAccount(newMnemonic.ToString(), "1234");
 	}
 
@@ -309,5 +245,16 @@ public class SolanaAuthExample : MonoBehaviour
 	{
 		_wallet = new PhantomWallet(_phantomWalletOptions, RpcCluster.DevNet, string.Empty, true);
 		return await _wallet.Login();
+	}
+
+	private void Log(string message)
+	{
+#if UNITY_EDITOR
+		Debug.Log(message);
+// #elif (UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL)
+		TextMeshProUGUI log = new GameObject("LogEntry").AddComponent<TextMeshProUGUI>();
+		log.text = message;
+		log.transform.SetParent(_logsParent, false);
+#endif
 	}
 }
