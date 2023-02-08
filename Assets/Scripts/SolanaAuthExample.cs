@@ -31,7 +31,6 @@ public class SolanaAuthExample : MonoBehaviour
 	[SerializeField] private Federation _federation;
 	[SerializeField] private Transform _logsParent;
 
-
 	private readonly PhantomWalletOptions _phantomWalletOptions = new() { appMetaDataUrl = "https://beamable.com" };
 	private WalletBase _wallet;
 	private IAuthService _authService;
@@ -166,31 +165,25 @@ public class SolanaAuthExample : MonoBehaviour
 		Working = false;
 	}
 
-	private async void OnGetExternalClicked()
+	private void OnGetExternalClicked()
 	{
-		Working = true;
 		Log("Gettting external identities info...");
-		await GetExternalIdentities();
-		Working = false;
-
-		async Promise GetExternalIdentities()
+		if (_ctx.Accounts.Current == null) return;
+		
+		if (_ctx.Accounts.Current.ExternalIdentities.Length != 0)
 		{
-			User user = await _authService.GetUser();
 			StringBuilder builder = new();
-			if (user != null && user.external.Count > 0)
+			foreach (ExternalIdentity identity in _ctx.Accounts.Current.ExternalIdentities)
 			{
-				foreach (ExternalIdentity identity in user.external)
-				{
-					builder.AppendLine(
-						$"Service: {identity.providerService}, namespace: {identity.providerNamespace}, public key: {identity.userId}");
-				}
+				builder.AppendLine(
+					$"Service: {identity.providerService}, namespace: {identity.providerNamespace}, public key: {identity.userId}");
+			}
 
-				Log(builder.ToString());
-			}
-			else
-			{
-				Log("No external identities found...");
-			}
+			Log(builder.ToString());
+		}
+		else
+		{
+			Log("No external identities found...");
 		}
 	}
 
