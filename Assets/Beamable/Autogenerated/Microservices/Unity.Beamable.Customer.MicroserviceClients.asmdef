@@ -5,8 +5,9 @@
     "Unity.Beamable.Runtime.Common",
     "Unity.Beamable.Server.Runtime",
     "Unity.Beamable.Server.Runtime.Common",
-    "Unity.Beamable.Customer.Common"
-  ],
+     "Unity.Beamable.Solana.Common",
+     "Unity.Beamable.Customer.Common"
+   ],
   "name":"Unity.Beamable.Customer.MicroserviceClients",
   "autoReferenced":true
 }
