@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Beamable;
 using Beamable.Api.Auth;
 using Beamable.Common;
 using Beamable.Common.Api.Auth;
+using Beamable.Common.Api.Inventory;
 using Beamable.Common.Content;
 using Beamable.Player;
 using Beamable.Server.Clients;
@@ -27,9 +29,12 @@ public class SolanaAuthExample : MonoBehaviour
 	[SerializeField] private Button _detachIdentityButton;
 	[SerializeField] private Button _getExternalIdentitiesButton;
 	[SerializeField] private Button _signMessageButton;
+	[SerializeField] private Button _walletExplorerButton;
+	[SerializeField] private Button _getInventoryButton;
 
 	[SerializeField] private Federation _federation;
 	[SerializeField] private Transform _logsParent;
+	[SerializeField] private string _walletPassword = "1234";
 
 	private readonly PhantomWalletOptions _phantomWalletOptions = new() { appMetaDataUrl = "https://beamable.com" };
 	private WalletBase _wallet;
@@ -87,6 +92,8 @@ public class SolanaAuthExample : MonoBehaviour
 		_detachIdentityButton.onClick.AddListener(OnDetachClicked);
 		_getExternalIdentitiesButton.onClick.AddListener(OnGetExternalClicked);
 		_signMessageButton.onClick.AddListener(OnSignClicked);
+		_walletExplorerButton.onClick.AddListener(OnWalletExplorerClicked);
+		_getInventoryButton.onClick.AddListener(OnGetInventoryClicked);
 
 		_beamId.text = _ctx.Accounts.Current.GamerTag.ToString();
 	}
@@ -96,9 +103,10 @@ public class SolanaAuthExample : MonoBehaviour
 		_connectWalletButton.interactable = !Working && !WalletConnected;
 		_attachIdentityButton.interactable = !Working && WalletConnected && !WalletAttached;
 		_detachIdentityButton.interactable = !Working && WalletConnected && WalletAttached;
-
-		_getExternalIdentitiesButton.interactable = !Working && WalletConnected;
+		_getExternalIdentitiesButton.interactable = !Working;
 		_signMessageButton.interactable = !Working && WalletConnected;
+		_walletExplorerButton.interactable = WalletConnected;
+		_getInventoryButton.interactable = !Working;
 
 		_walletId.text = WalletConnected ? _account.PublicKey.Key : String.Empty;
 	}
@@ -141,6 +149,11 @@ public class SolanaAuthExample : MonoBehaviour
 			RegistrationResult result =
 				await _ctx.Accounts.AddExternalIdentity<SolanaCloudIdentity, SolanaFederationClient>(
 					_account.PublicKey.Key, ChallengeHandler);
+
+			if (result.isSuccess)
+			{
+				Log("Succesfully attached an external identity...");
+			}
 		}
 	}
 
@@ -169,7 +182,7 @@ public class SolanaAuthExample : MonoBehaviour
 	{
 		Log("Gettting external identities info...");
 		if (_ctx.Accounts.Current == null) return;
-		
+
 		if (_ctx.Accounts.Current.ExternalIdentities.Length != 0)
 		{
 			StringBuilder builder = new();
@@ -184,6 +197,64 @@ public class SolanaAuthExample : MonoBehaviour
 		else
 		{
 			Log("No external identities found...");
+		}
+	}
+
+	private void OnWalletExplorerClicked()
+	{
+		var address =
+			$"https://explorer.solana.com/address/{_account.PublicKey}?cluster=devnet";
+
+		Application.OpenURL(address);
+	}
+
+	private async void OnGetInventoryClicked()
+	{
+		InventoryView view = await _ctx.Api.InventoryService.GetCurrent();
+
+		ParseCurrencies(view.currencies);
+		ParseItems(view.items);
+
+		void ParseCurrencies(Dictionary<string, long> currencies)
+		{
+			StringBuilder builder = new();
+			foreach (var (currency, amount) in currencies)
+			{
+				builder.AppendLine($"Currency: {currency}, amount: {amount}");
+			}
+
+			Log(builder.ToString());
+		}
+
+		void ParseItems(Dictionary<string, List<ItemView>> items)
+		{
+			foreach (var (itemId, itemInstances) in items)
+			{
+				StringBuilder builder = new();
+				builder.AppendLine(itemId);
+				builder.AppendLine("====================");
+
+				foreach (ItemView instance in itemInstances)
+				{
+					StringBuilder itemBuilder = new();
+					itemBuilder.AppendLine($"Id: {instance.id}");
+
+					if (instance.properties.Count > 0)
+					{
+						itemBuilder.AppendLine("  Properties:");
+
+						foreach (var (key, value) in instance.properties)
+						{
+							itemBuilder.AppendLine($"	{key}, {value}");
+						}
+					}
+
+					builder.AppendLine(itemBuilder.ToString());
+					builder.AppendLine("====================");
+				}
+
+				Log(builder.ToString());
+			}
 		}
 	}
 
@@ -231,7 +302,8 @@ public class SolanaAuthExample : MonoBehaviour
 		_wallet = new InGameWallet(RpcCluster.DevNet, null, true);
 
 		Mnemonic newMnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
-		return await _wallet.Login("1234") ?? await _wallet.CreateAccount(newMnemonic.ToString(), "1234");
+		return await _wallet.Login(_walletPassword) ??
+		       await _wallet.CreateAccount(newMnemonic.ToString(), _walletPassword);
 	}
 
 	private async Task<Account> LoginPhantom()
@@ -244,9 +316,11 @@ public class SolanaAuthExample : MonoBehaviour
 	{
 #if UNITY_EDITOR
 		Debug.Log(message);
-// #elif (UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL)
+#endif
+
+#if (UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL)
 		TextMeshProUGUI log = new GameObject("LogEntry").AddComponent<TextMeshProUGUI>();
-		log.text = message;
+		log.text = $"{message}";
 		log.transform.SetParent(_logsParent, false);
 #endif
 	}
