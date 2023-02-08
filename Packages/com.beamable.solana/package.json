@@ -18,9 +18,7 @@
     "com.unity.textmeshpro": "1.4.1",
     "com.unity.editorcoroutines": "1.0.0",
     "com.unity.test-framework": "1.1.19",
-    "com.unity.test-framework.performance": "2.8.1-preview",
-    "com.beamable": "0.0.0-PREVIEW.NIGHTLY-202302071817",
-    "com.beamable.server": "0.0.0-PREVIEW.NIGHTLY-202302071817"
+    "com.unity.test-framework.performance": "2.8.1-preview"
   },
   "samples": []
 }
