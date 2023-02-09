@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Beamable;
@@ -119,7 +120,7 @@ public class SolanaAuthExample : MonoBehaviour
 		await Login();
 		if (WalletConnected)
 		{
-			WalletAttached = await CheckIfAttached();
+			WalletAttached = CheckIfWalletHasAttachedIdentity();
 		}
 
 		Working = false;
@@ -130,7 +131,7 @@ public class SolanaAuthExample : MonoBehaviour
 		Working = true;
 		Log("Attaching wallet...");
 		await SendAttachRequest();
-		WalletAttached = await CheckIfAttached();
+		WalletAttached = CheckIfWalletHasAttachedIdentity();
 		Working = false;
 
 		async Promise SendAttachRequest(ChallengeSolution challengeSolution = null)
@@ -148,7 +149,7 @@ public class SolanaAuthExample : MonoBehaviour
 
 			RegistrationResult result =
 				await _ctx.Accounts.AddExternalIdentity<SolanaCloudIdentity, SolanaFederationClient>(
-					_account.PublicKey.Key, ChallengeHandler);
+					_account.PublicKey.Key, SolveChallenge);
 
 			if (result.isSuccess)
 			{
@@ -163,7 +164,7 @@ public class SolanaAuthExample : MonoBehaviour
 		Working = true;
 		Log("Detaching wallet...");
 		await _ctx.Accounts.RemoveExternalIdentity<SolanaCloudIdentity, SolanaFederationClient>();
-		WalletAttached = await CheckIfAttached();
+		WalletAttached = CheckIfWalletHasAttachedIdentity();
 		Working = false;
 	}
 
@@ -258,29 +259,38 @@ public class SolanaAuthExample : MonoBehaviour
 		}
 	}
 
-	private async Promise<string> ChallengeHandler(string challengeToken)
+	private async Promise<string> SolveChallenge(string challengeToken)
 	{
+		Log($"Signing a challenge: {challengeToken}");
+		
+		// Parsing received challenge token to a 3 part struct
 		ChallengeToken parsedToken = _authService.ParseChallengeToken(challengeToken);
+		// Challenge we received to solve is Base64String 
 		byte[] challengeBytes = Convert.FromBase64String(parsedToken.challenge);
-		string challenge = Encoding.UTF8.GetString(challengeBytes);
-
-		Log($"Signing a challenge {challenge}");
+		// Currently connected wallet is responsible for signing passed challenge. InGameWallet (in editor) is 
+		// handling this automatically. PhantomWallet (mobile and WebGL) connects either with mobile app or browser
+		// extension.
 		byte[] signatureBytes = await _wallet.SignMessage(challengeBytes);
+		// Signature is converted back to Base64String as that's the format that server is waiting for
 		string signedSignature = Convert.ToBase64String(signatureBytes);
+		
 		Log($"Signed signature: {signedSignature}");
 
 		return signedSignature;
 	}
 
-	private async Promise<bool> CheckIfAttached()
+	private bool CheckIfWalletHasAttachedIdentity()
 	{
-		User user = await _authService.GetUser();
+		if (_ctx.Accounts.Current == null)
+			return false;
 
-		if (user == null || user.external.Count <= 0) return false;
+		if (_ctx.Accounts.Current.ExternalIdentities.Length == 0)
+			return false;
 
-		ExternalIdentity externalIdentity = user.external.Find(i =>
+		ExternalIdentity externalIdentity = _ctx.Accounts.Current.ExternalIdentities.FirstOrDefault(i =>
 			i.providerNamespace == _federation.Namespace && i.providerService == _federation.Service &&
 			i.userId == _account.PublicKey);
+
 		return externalIdentity != null;
 	}
 
@@ -299,15 +309,19 @@ public class SolanaAuthExample : MonoBehaviour
 
 	private async Task<Account> LoginInGame()
 	{
+		// InGameWallet class is used for editor operations. It automatically approves all messages and transactions.
 		_wallet = new InGameWallet(RpcCluster.DevNet, null, true);
 
-		Mnemonic newMnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
+		// We are retrieving local wallet or creating a new one if none was found
 		return await _wallet.Login(_walletPassword) ??
-		       await _wallet.CreateAccount(newMnemonic.ToString(), _walletPassword);
+		       await _wallet.CreateAccount(new Mnemonic(WordList.English, WordCount.Twelve).ToString(),
+			       _walletPassword);
 	}
 
 	private async Task<Account> LoginPhantom()
 	{
+		// PhantomWallet class is used for clients built for Android, iOS and WebGL. It handles communication with
+		// Phantom Wallet app installed on mobile device and Phantom Wallet browser extensions installed on desktop.
 		_wallet = new PhantomWallet(_phantomWalletOptions, RpcCluster.DevNet, string.Empty, true);
 		return await _wallet.Login();
 	}
