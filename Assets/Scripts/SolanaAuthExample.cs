@@ -18,6 +18,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using Account = Solana.Unity.Wallet.Account;
 
+/// <summary>
+/// A script that presents how to perform basic operations like connecting to a wallet, attach or detach external identity
+/// or sign a message with connected wallet
+/// </summary>
 public class SolanaAuthExample : MonoBehaviour
 {
 	private BeamContext _ctx;
@@ -158,7 +162,6 @@ public class SolanaAuthExample : MonoBehaviour
 		}
 	}
 
-
 	private async void OnDetachClicked()
 	{
 		Working = true;
@@ -168,17 +171,34 @@ public class SolanaAuthExample : MonoBehaviour
 		Working = false;
 	}
 
+	/// <summary>
+	/// Method that shows how to sign a message with connected wallet 
+	/// </summary>
 	private async void OnSignClicked()
 	{
 		Working = true;
 		Log("Signing a message...");
+		
 		string message = "Sample message to sign";
+		
+		// Currently connected wallet is responsible for signing passed challenge. InGameWallet (in editor) is 
+		// handling this automatically. PhantomWallet (mobile and WebGL) connects either with mobile app or browser
+		// extension.
 		byte[] signatureBytes = await _wallet.SignMessage(Encoding.UTF8.GetBytes(message));
+		
+		// Signature signed by a wallet should be converted back to Base64String as that's the format that server is
+		// waiting for
 		string signedSignature = Convert.ToBase64String(signatureBytes);
-		Log($"Signature (base64): {signedSignature}");
+		Log($"Signed signature: {signedSignature}");
 		Working = false;
 	}
 
+	/// <summary>
+	/// Method that renders currently connected to account external identities where Service is a microservice responsible
+	/// for handling custom server side logic, Namespace shows which namespace will be handled (namespaces can be implemented
+	/// by deriving IThirdPartyCloudIdentity interface and Public Key is a wallet address that has been connected to an
+	/// account
+	/// </summary>
 	private void OnGetExternalClicked()
 	{
 		Log("Gettting external identities info...");
@@ -258,20 +278,35 @@ public class SolanaAuthExample : MonoBehaviour
 			}
 		}
 	}
-
+	
+	/// <summary>
+	/// Method that shows a way to solve a challenge received from a server. It needs to be done to proof that we
+	/// are true owners of a wallet. After sending it back to a server it verifies it an decides wheter solution was
+	/// correct or not. Challenge token we are receving from server is a three-part, dot separated string and has
+	/// following format: {challenge}.{validUntilEpoch}.{signature} where:
+	///		{challenge}			- Base64 encoded string
+	///		{validUntilEpoch}	- valid until epoch time in milliseconds, Int64 value
+	///		{signature}			- Base64 encoded token signature
+	/// </summary>
+	/// <param name="challengeToken"></param>
+	/// <returns></returns>
 	private async Promise<string> SolveChallenge(string challengeToken)
 	{
 		Log($"Signing a challenge: {challengeToken}");
 		
 		// Parsing received challenge token to a 3 part struct
 		ChallengeToken parsedToken = _authService.ParseChallengeToken(challengeToken);
+		
 		// Challenge we received to solve is Base64String 
 		byte[] challengeBytes = Convert.FromBase64String(parsedToken.challenge);
+		
 		// Currently connected wallet is responsible for signing passed challenge. InGameWallet (in editor) is 
 		// handling this automatically. PhantomWallet (mobile and WebGL) connects either with mobile app or browser
 		// extension.
 		byte[] signatureBytes = await _wallet.SignMessage(challengeBytes);
-		// Signature is converted back to Base64String as that's the format that server is waiting for
+		
+		// Signature signed by a wallet should be converted back to Base64String as that's the format that server is
+		// waiting for
 		string signedSignature = Convert.ToBase64String(signatureBytes);
 		
 		Log($"Signed signature: {signedSignature}");
