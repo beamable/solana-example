@@ -168,6 +168,12 @@ public class SolanaAuthExample : MonoBehaviour
 		Log("Detaching wallet...");
 		await _ctx.Accounts.RemoveExternalIdentity<SolanaCloudIdentity, SolanaFederationClient>();
 		WalletAttached = CheckIfWalletHasAttachedIdentity();
+
+		if (!WalletAttached)
+		{
+			Log("Succesfully detached an external identity...");
+		}
+		
 		Working = false;
 	}
 
