@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Models;
-using Beamable.Solana.Editor;
+using Beamable.Solana.Configuration;
 using Solana.Unity.KeyStore.Model;
 using Solana.Unity.KeyStore.Services;
 using Solana.Unity.Wallet;

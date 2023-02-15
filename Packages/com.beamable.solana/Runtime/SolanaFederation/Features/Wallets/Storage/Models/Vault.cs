@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using Beamable.Solana.Editor;
+using Beamable.Solana.Configuration;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Solana.Unity.KeyStore.Model;

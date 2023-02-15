@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace Beamable.Solana.Editor
+namespace Beamable.Solana.Configuration
 {
 	[InitializeOnLoad]
 	public static class SolanaModule

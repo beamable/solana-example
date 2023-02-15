@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Beamable.Common;
-using Beamable.Solana.Editor;
+using Beamable.Solana.Configuration;
 using Solana.Unity.Programs.Utilities;
 using Solana.Unity.Rpc;
 using Solana.Unity.Wallet;

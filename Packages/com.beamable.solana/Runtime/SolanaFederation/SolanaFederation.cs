@@ -10,7 +10,7 @@ using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Server;
-using Beamable.Solana.Editor;
+using Beamable.Solana.Configuration;
 
 namespace Beamable.Microservices.SolanaFederation
 {

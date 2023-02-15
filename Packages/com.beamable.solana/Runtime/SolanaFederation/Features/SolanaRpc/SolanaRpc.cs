@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Extensions;
-using Beamable.Solana.Editor;
+using Beamable.Solana.Configuration;
 using Newtonsoft.Json;
 using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;

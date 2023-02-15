@@ -1,7 +1,7 @@
 ﻿using System;
 using Solana.Unity.SDK;
 
-namespace Beamable.Solana.Editor
+namespace Beamable.Solana.Configuration
 {
 	public class SolanaConfigurationConstants : IConfigurationConstants
 	{

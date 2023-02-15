@@ -12,7 +12,7 @@ using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
-using Beamable.Solana.Editor;
+using Beamable.Solana.Configuration;
 using MongoDB.Driver;
 using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;

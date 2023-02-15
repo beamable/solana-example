@@ -2,7 +2,7 @@
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Storage;
-using Beamable.Solana.Editor;
+using Beamable.Solana.Configuration;
 using MongoDB.Driver;
 using Solana.Unity.Wallet;
 using Solana.Unity.Wallet.Bip39;
