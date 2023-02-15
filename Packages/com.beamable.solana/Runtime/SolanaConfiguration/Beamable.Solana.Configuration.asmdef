@@ -12,6 +12,6 @@
     "Unity.TextMeshPro",
     "com.solana.unity_sdk"
   ],
-  "name": "Beamable.Solana.Examples",
+  "name": "Beamable.Solana.Configuration",
   "autoReferenced": true
 }

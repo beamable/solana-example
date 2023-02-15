@@ -10,6 +10,7 @@ using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Server;
+using Beamable.Solana.Editor;
 
 namespace Beamable.Microservices.SolanaFederation
 {
@@ -29,7 +30,7 @@ namespace Beamable.Microservices.SolanaFederation
 			TransactionManager.AddSigner(realmWallet.Account);
 
 			// Fetch the default token collection on service start for early initialization
-			var _ = await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName, realmWallet);
+			var _ = await CollectionService.GetOrCreateCollection(SolanaConfiguration.Instance.DefaultTokenCollectionName, realmWallet);
 
 			if (TransactionManager.HasInstructions()) await TransactionManager.Execute(realmWallet);
 		}
@@ -59,7 +60,7 @@ namespace Beamable.Microservices.SolanaFederation
 			// Generate a challenge
 			return Promise<FederatedAuthenticationResponse>.Successful(new FederatedAuthenticationResponse
 			{
-				challenge = $"Please sign this random message to authenticate, {Guid.NewGuid()}", challenge_ttl = Configuration.AuthenticationChallengeTtlSec
+				challenge = $"Please sign this random message to authenticate, {Guid.NewGuid()}", challenge_ttl = SolanaConfiguration.Instance.AuthenticationChallengeTtlSec
 			});
 		}
 
