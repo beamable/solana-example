@@ -1,5 +1,4 @@
 ﻿using System;
-using Solana.Unity.SDK;
 
 namespace Beamable.Solana.Configuration
 {
@@ -13,6 +12,14 @@ namespace Beamable.Solana.Configuration
 
 	public class SolanaConfiguration : AbsModuleConfigurationObject<SolanaConfigurationConstants>
 	{
+		public enum RpcCluster
+		{
+			MainNet = 0,
+			DevNet = 1,
+			TestNet = 2,
+			Custom = 3
+		}
+		
 		public static SolanaConfiguration Instance => Get<SolanaConfiguration>();
 
 		public RpcCluster SelectedCluster;

@@ -1,16 +1,6 @@
 {
   "references": [
-    "Unity.Beamable",
-    "Unity.Beamable.Runtime.Common",
-    "Unity.Beamable.Server.Runtime",
-    "Unity.Beamable.Server.Runtime.Common",
-    "Unity.Beamable.Server.Runtime.Mocks",
-    "Unity.Beamable.Solana.Common",
-    "Unity.Beamable.Customer.MicroserviceClients",
-    "Beamable.Platform",
-    "Beamable.SmallerJSON",
-    "Unity.TextMeshPro",
-    "com.solana.unity_sdk"
+    "Unity.Beamable"
   ],
   "name": "Beamable.Solana.Configuration",
   "autoReferenced": true
