@@ -28,8 +28,6 @@ namespace SolanaExamples.Scripts
         [SerializeField] private Button _getExternalIdentitiesButton;
         [SerializeField] private Button _signMessageButton;
 
-        // [SerializeField] private Federation _federation;
-
         [SerializeField] private TextMeshProUGUI _beamId;
         [SerializeField] private TextMeshProUGUI _walletId;
 
@@ -147,10 +145,14 @@ namespace SolanaExamples.Scripts
         {
             Data.Instance.Working = true;
             OnLog("Detaching wallet...");
+            
+            User user = await Ctx.Api.AuthService.GetUser();
 
-            ExternalIdentity externalIdentity =
-                Ctx.Accounts.Current.ExternalIdentities.First(identity =>
-                    identity.providerNamespace == Data.Instance.Federation.Namespace);
+            if (user == null)
+                return;
+
+            ExternalIdentity externalIdentity = user.external.Find(identity =>
+                identity.providerNamespace == Data.Instance.Federation.Namespace);
 
             if (externalIdentity != null)
             {
@@ -282,7 +284,7 @@ namespace SolanaExamples.Scripts
                 return false;
             }
 
-            ExternalIdentity externalIdentity = user.external.FirstOrDefault(i =>
+            ExternalIdentity externalIdentity = user.external.Find(i =>
                 i.providerNamespace == federation.Namespace && i.providerService == federation.Service &&
                 i.userId == Data.Instance.Account.PublicKey);
 
