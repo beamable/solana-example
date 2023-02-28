@@ -21,5 +21,11 @@
     "com.unity.test-framework.performance": "2.8.1-preview",
     "com.unity.nuget.newtonsoft-json": "3.0.2"
   },
-  "samples": []
+  "samples": [
+    {
+      "displayName": "Solana Example",
+      "description": "Example showing simple usage",
+      "path": "Samples/SolanaExamples"
+    }
+  ]
 }
