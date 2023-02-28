@@ -16,6 +16,9 @@ namespace SolanaExamples.Scripts
 
 		[SerializeField] private string _walletPassword = "1234";
 		[SerializeField] private Federation _federation;
+		
+		[SerializeField] private CurrencyRef _gemsRef;
+		[SerializeField] private ItemRef _swordsRef;
 
 		#region Auto properties
 
@@ -71,6 +74,8 @@ namespace SolanaExamples.Scripts
 		public string WalletPassword => _walletPassword;
 		public bool WalletConnected => Account != null;
 		public Federation Federation => _federation;
+		public CurrencyRef GemsRef => _gemsRef;
+		public ItemRef SwordsRef => _swordsRef;
 
 		#endregion
 

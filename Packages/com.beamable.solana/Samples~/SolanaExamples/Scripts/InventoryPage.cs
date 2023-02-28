@@ -14,10 +14,6 @@ namespace SolanaExamples.Scripts
     {
         [SerializeField] private Button _walletExplorerButton;
         [SerializeField] private Button _getInventoryButton;
-
-        [SerializeField] private CurrencyRef _gemsRef;
-        [SerializeField] private ItemRef _swordsRef;
-
         [SerializeField] private ItemPresenter _itemPresenter;
         [SerializeField] private Transform _itemsParent;
 
@@ -35,7 +31,7 @@ namespace SolanaExamples.Scripts
         {
             Data.Instance.Working = true;
 
-            CurrencyContent gemsContent = await _gemsRef.Resolve();
+            CurrencyContent gemsContent = await Data.Instance.GemsRef.Resolve();
             gemsContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
             {
                 _cachedSprites.Add(gemsContent.Id, handle.Result);
@@ -46,7 +42,7 @@ namespace SolanaExamples.Scripts
                 }
             };
 
-            ItemContent swordsContent = await _swordsRef.Resolve();
+            ItemContent swordsContent = await Data.Instance.SwordsRef.Resolve();
             swordsContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
             {
                 _cachedSprites.Add(swordsContent.Id, handle.Result);
