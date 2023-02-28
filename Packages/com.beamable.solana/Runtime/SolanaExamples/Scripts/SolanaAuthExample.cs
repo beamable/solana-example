@@ -12,7 +12,7 @@ namespace SolanaExamples.Scripts
 		private void Awake()
 		{
 			OnTabButtonClicked("auth");
-
+			
 			foreach (TabPage tabPage in _pages)
 			{
 				Data.Instance.OnDataChanged += tabPage.OnRefresh;

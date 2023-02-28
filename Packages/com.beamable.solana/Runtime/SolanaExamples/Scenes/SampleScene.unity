@@ -1825,8 +1825,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1283769944}
   m_HandleRect: {fileID: 1283769943}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.9247926
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3108,9 +3108,6 @@ MonoBehaviour:
   _detachIdentityButton: {fileID: 385446511}
   _getExternalIdentitiesButton: {fileID: 1866165355}
   _signMessageButton: {fileID: 263355507}
-  _federation:
-    Service: SolanaFederation
-    Namespace: solana
   _beamId: {fileID: 185117681}
   _walletId: {fileID: 79999278}
 --- !u!1 &1283769942
@@ -3979,6 +3976,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _walletPassword: 1234
+  _federation:
+    Service: SolanaFederation
+    Namespace: solana
 --- !u!1 &1749906203
 GameObject:
   m_ObjectHideFlags: 0
