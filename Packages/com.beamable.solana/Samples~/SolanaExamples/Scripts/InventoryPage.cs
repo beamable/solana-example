@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using Beamable.Common.Api.Inventory;
-using Beamable.Common.Inventory;
 using UnityEngine;
 using UnityEngine.UI;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using Beamable.Common.Content;
+using Beamable.Common.Inventory;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 using UnityEngine;
