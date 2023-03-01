@@ -6,13 +6,13 @@ using Beamable.Common;
 using Beamable.Common.Api;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Collections;
+using Beamable.Microservices.SolanaFederation.Features.Configuration;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage.Models;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
-using Beamable.Solana.Configuration;
 using MongoDB.Driver;
 using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;
@@ -75,7 +75,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 				var newMints = new List<Mint>();
 
 				var defaultCollection =
-					await CollectionService.GetOrCreateCollection(SolanaConfiguration.Instance.DefaultTokenCollectionName, realmWallet);
+					await CollectionService.GetOrCreateCollection(ConfigurationService.Configuration.DefaultTokenCollectionName, realmWallet);
 
 				var minBalanceForExemption = await SolanaRpcClient.GetMinimumBalanceForRentExemptionAsync(
 					TokenProgram.MintAccountDataSize
@@ -179,7 +179,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			);
 
 			var defaultCollection =
-				await CollectionService.GetOrCreateCollection(SolanaConfiguration.Instance.DefaultTokenCollectionName, realmWallet);
+				await CollectionService.GetOrCreateCollection(ConfigurationService.Configuration.DefaultTokenCollectionName, realmWallet);
 
 			var playerKey = new PublicKey(playerWalletAddress);
 

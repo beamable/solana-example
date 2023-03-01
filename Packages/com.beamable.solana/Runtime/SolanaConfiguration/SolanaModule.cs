@@ -14,7 +14,7 @@ namespace Beamable.Solana.Configuration
 		{
 			try
 			{
-				_ = SolanaConfiguration.Instance;
+				_ = SolanaConfiguration.SharedInstance;
 			}
 			catch (ModuleConfigurationNotReadyException)
 			{

@@ -1,6 +1,6 @@
 ﻿using System.Text;
+using Beamable.Microservices.SolanaFederation.Features.Configuration;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Models;
-using Beamable.Solana.Configuration;
 using Solana.Unity.KeyStore.Model;
 using Solana.Unity.KeyStore.Services;
 using Solana.Unity.Wallet;
@@ -14,7 +14,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 			var keystoreService = new KeyStoreScryptService();
 			var mnemonicStringByteArray = Encoding.UTF8.GetBytes(wallet.Mnemonic.ToString());
 
-			return keystoreService.EncryptAndGenerateKeyStore(SolanaConfiguration.Instance.RealmSecret, mnemonicStringByteArray,
+			return keystoreService.EncryptAndGenerateKeyStore(ConfigurationService.Configuration.RealmSecret, mnemonicStringByteArray,
 				wallet.Account.PublicKey.Key);
 		}
 
@@ -22,7 +22,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 		{
 			return new Vault
 			{
-				Name = SolanaConfiguration.Instance.RealmWalletName,
+				Name = ConfigurationService.Configuration.RealmWalletName,
 				Value = wallet.EncryptMnemonic()
 			};
 		}

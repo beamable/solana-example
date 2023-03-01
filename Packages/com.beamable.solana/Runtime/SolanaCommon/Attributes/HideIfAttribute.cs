@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Beamable.Solana.Configuration
+namespace Beamable.Solana.Common
 {
     public class HidingAttribute : PropertyAttribute
     {

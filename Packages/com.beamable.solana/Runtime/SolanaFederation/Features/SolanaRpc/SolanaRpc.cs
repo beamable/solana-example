@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Beamable.Common;
+using Beamable.Microservices.SolanaFederation.Features.Configuration;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Extensions;
-using Beamable.Solana.Configuration;
 using Newtonsoft.Json;
 using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;
@@ -19,11 +19,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 	public static class SolanaRpcClient
 	{
 		private static readonly IRpcClient Client =
-			ClientFactory.GetClient(SolanaConfiguration.Instance.SolanaCluster);
+			ClientFactory.GetClient(ConfigurationService.Configuration.SolanaCluster);
 
 		private static readonly HttpClient HttpClient = new();
 
-		private static readonly TokenBucket TokenBucket = new(SolanaConfiguration.Instance.MaxRpcRequestsPerSec, 1000);
+		private static readonly TokenBucket TokenBucket = new(ConfigurationService.Configuration.MaxRpcRequestsPerSec, 1000);
 
 		private static async Task AcquireToken()
 		{

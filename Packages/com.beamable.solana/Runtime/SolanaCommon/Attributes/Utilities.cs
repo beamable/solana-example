@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 
-namespace HideIf_Utilities
+namespace Beamable.Solana.Common
 {
 
     public class Utilities

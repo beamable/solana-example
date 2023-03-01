@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Authentication;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
 using Beamable.Microservices.SolanaFederation.Features.Collections;
+using Beamable.Microservices.SolanaFederation.Features.Configuration;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Server;
-using Beamable.Solana.Configuration; // We can't have this here, target asmdef is dependant on Unity.Beamable
-                                     
+using Beamable.Solana.Common;
+using UnityEngine;
 
 // THOUGHTS
 // 1. SolanaConfiguration asset is not a part of the container
@@ -32,6 +34,11 @@ namespace Beamable.Microservices.SolanaFederation
         [InitializeServices]
         public static async Task Initialize(IServiceInitializer initializer)
         {
+            // check configuration
+            var config = ConfigurationService.Configuration;
+            Debug.Log($"Solana config. cluster=[{config.SolanaCluster}] realm-wallet=[{config.RealmWalletName}] airdrop-amount=[{config.AirDropAmount}]");
+           
+            
             var storage = initializer.GetService<IStorageObjectConnectionProvider>();
             var db = await storage.SolanaStorageDatabase();
 
@@ -43,7 +50,7 @@ namespace Beamable.Microservices.SolanaFederation
 
             // Fetch the default token collection on service start for early initialization
             var _ = await CollectionService.GetOrCreateCollection(
-                SolanaConfiguration.Instance.DefaultTokenCollectionName, realmWallet);
+                ConfigurationService.Configuration.DefaultTokenCollectionName, realmWallet);
 
             if (TransactionManager.HasInstructions()) await TransactionManager.Execute(realmWallet);
         }
@@ -74,7 +81,7 @@ namespace Beamable.Microservices.SolanaFederation
             return Promise<FederatedAuthenticationResponse>.Successful(new FederatedAuthenticationResponse
             {
                 challenge = $"Please sign this random message to authenticate, {Guid.NewGuid()}",
-                challenge_ttl = SolanaConfiguration.Instance.AuthenticationChallengeTtlSec
+                challenge_ttl = ConfigurationService.Configuration.AuthenticationChallengeTtlSec
             });
         }
 

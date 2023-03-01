@@ -6,9 +6,8 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor;
-using HideIf_Utilities;
 
-namespace Beamable.Solana.Configuration
+namespace Beamable.Solana.Common
 {
     public abstract class HidingAttributeDrawer : PropertyDrawer
     {
@@ -17,19 +16,13 @@ namespace Beamable.Solana.Configuration
         /// 
         /// Usefull for other property drawers that should respect the HideIfAttribute
         /// </summary>
-        public static bool CheckShouldHide(SerializedProperty property)
+        public static bool CheckShouldHide(PropertyAttribute attribute, SerializedProperty property)
         {
             try
             {
                 bool shouldHide = false;
 
-                HidingAttribute[] attachedAttributes =
-                    (HidingAttribute[])
-                    property.serializedObject.targetObject.GetType()
-                        .GetField(property.name)
-                        .GetCustomAttributes(typeof(HidingAttribute), false);
-
-                foreach (var hider in attachedAttributes)
+                if (attribute is HidingAttribute hider)
                 {
                     if (!ShouldDraw(property.serializedObject, hider))
                     {
@@ -57,7 +50,8 @@ namespace Beamable.Solana.Configuration
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            if (!CheckShouldHide(property))
+           
+            if (!CheckShouldHide(attribute, property))
             {
                 if (typeToDrawerType == null)
                     PopulateTypeToDrawer();
@@ -81,7 +75,7 @@ namespace Beamable.Solana.Configuration
         {
             //Even if the property height is 0, the property gets margins of 1 both up and down.
             //So to truly hide it, we have to hack a height of -2 to counteract that!
-            if (CheckShouldHide(property))
+            if (CheckShouldHide(attribute, property))
                 return -2;
 
             if (typeToDrawerType == null)
