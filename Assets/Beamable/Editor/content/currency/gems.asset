@@ -14,8 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _tags:
   - base
-  Icon:
-    m_AssetGUID: f819a6beb22c04c8d9f8222f930252b5
-    m_SubObjectName: 
+  icon:
+    m_AssetGUID: 434048c86e52d7749ad91227d28cb5b7
+    m_SubObjectName: gem
+    m_SubObjectType: UnityEngine.Sprite, UnityEngine.CoreModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    m_EditorAssetChanged: 0
   clientPermission:
-    write_self: 0
+    writeSelf: 0
+  startingAmount: 0
+  federation:
+    HasValue: 1
+    Value:
+      Service: SolanaFederation
+      Namespace: solana

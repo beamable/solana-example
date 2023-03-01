@@ -1,91 +1,136 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using Beamable.Common.Api.Inventory;
+using Beamable.Common.Inventory;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace SolanaExamples.Scripts
 {
-	/// <summary>
-	/// A script that presents how to perform operations related to federated inventory items
-	/// </summary>
-	public class InventoryPage : TabPage
-	{
-		[SerializeField] private Button _walletExplorerButton;
-		[SerializeField] private Button _getInventoryButton;
+    /// <summary>
+    /// A script that presents how to perform operations related to federated inventory items
+    /// </summary>
+    public class InventoryPage : TabPage
+    {
+        [SerializeField] private Button _walletExplorerButton;
+        [SerializeField] private Button _getInventoryButton;
 
-		private void Start()
-		{
-			_walletExplorerButton.onClick.AddListener(OnWalletExplorerClicked);
-			_getInventoryButton.onClick.AddListener(OnGetInventoryClicked);
-		}
+        [SerializeField] private CurrencyRef _gemsRef;
+        [SerializeField] private ItemRef _swordsRef;
 
-		public override void OnRefresh()
-		{
-			_walletExplorerButton.interactable = Data.Instance.WalletConnected;
-			_getInventoryButton.interactable = !Data.Instance.Working;
-		}
+        [SerializeField] private ItemPresenter _itemPresenter;
+        [SerializeField] private Transform _itemsParent;
 
-		private void OnWalletExplorerClicked()
-		{
-			var address =
-				$"https://explorer.solana.com/address/{Data.Instance.Account.PublicKey}?cluster=devnet";
+        private readonly Dictionary<string, Sprite> _cachedSprites = new();
 
-			Application.OpenURL(address);
-		}
+        private void Start()
+        {
+            _walletExplorerButton.onClick.AddListener(OnWalletExplorerClicked);
+            _getInventoryButton.onClick.AddListener(OnGetInventoryClicked);
 
-		private async void OnGetInventoryClicked()
-		{
-			Data.Instance.Working = true;
-			
-			InventoryView view = await Ctx.Api.InventoryService.GetCurrent();
+            DownloadSprites();
+        }
 
-			ParseCurrencies(view.currencies);
-			ParseItems(view.items);
+        private async void DownloadSprites()
+        {
+            Data.Instance.Working = true;
 
-			void ParseCurrencies(Dictionary<string, long> currencies)
-			{
-				StringBuilder builder = new();
-				foreach (var (currency, amount) in currencies)
-				{
-					builder.AppendLine($"Currency: {currency}, amount: {amount}");
-				}
+            CurrencyContent gemsContent = await _gemsRef.Resolve();
+            gemsContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
+            {
+                _cachedSprites.Add(gemsContent.Id, handle.Result);
 
-				OnLog.Invoke(builder.ToString());
-			}
+                if (_cachedSprites.Count == 2)
+                {
+                    Data.Instance.Working = false;
+                }
+            };
 
-			Data.Instance.Working = false;
+            ItemContent swordsContent = await _swordsRef.Resolve();
+            swordsContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
+            {
+                _cachedSprites.Add(swordsContent.Id, handle.Result);
 
-			void ParseItems(Dictionary<string, List<ItemView>> items)
-			{
-				foreach (var (itemId, itemInstances) in items)
-				{
-					StringBuilder builder = new();
-					builder.AppendLine(itemId);
-					builder.AppendLine("====================");
+                if (_cachedSprites.Count == 2)
+                {
+                    Data.Instance.Working = false;
+                }
+            };
+        }
 
-					foreach (ItemView instance in itemInstances)
-					{
-						StringBuilder itemBuilder = new();
-						itemBuilder.AppendLine($"Id: {instance.id}");
+        public override void OnRefresh()
+        {
+            _walletExplorerButton.interactable = Data.Instance.WalletConnected;
+            _getInventoryButton.interactable = !Data.Instance.Working;
+        }
 
-						if (instance.properties.Count > 0)
-						{
-							itemBuilder.AppendLine("  Properties:");
+        private void OnWalletExplorerClicked()
+        {
+            var address =
+                $"https://explorer.solana.com/address/{Data.Instance.Account.PublicKey}?cluster=devnet";
 
-							foreach (var (key, value) in instance.properties)
-							{
-								itemBuilder.AppendLine($"	{key}, {value}");
-							}
-						}
+            Application.OpenURL(address);
+        }
 
-						builder.AppendLine(itemBuilder.ToString());
-						builder.AppendLine("====================");
-					}
+        private async void OnGetInventoryClicked()
+        {
+            Data.Instance.Working = true;
+            
+            ClearItems();
 
-					OnLog.Invoke(builder.ToString());
-				}
-			}
-		}
-	}
+            InventoryView view = await Ctx.Api.InventoryService.GetCurrent();
+
+            ParseCurrencies(view.currencies);
+            ParseItems(view.items);
+
+            void ParseCurrencies(Dictionary<string, long> currencies)
+            {
+                StringBuilder builder = new();
+                foreach (var (currency, amount) in currencies)
+                {
+                    if (!_cachedSprites.TryGetValue(currency, out Sprite sprite)) continue;
+                    
+                    Instantiate(_itemPresenter, _itemsParent, false).GetComponent<ItemPresenter>()
+                        .Setup(sprite, amount.ToString());
+                        
+                    builder.AppendLine($"Currency: {currency}, amount: {amount}");
+                }
+
+                if (builder.Length > 0)
+                {
+                    OnLog.Invoke(builder.ToString());
+                }
+            }
+
+            Data.Instance.Working = false;
+
+            void ParseItems(Dictionary<string, List<ItemView>> items)
+            {
+                StringBuilder builder = new();
+
+                foreach (var (itemId, itemInstances) in items)
+                {
+                    if (!_cachedSprites.TryGetValue(itemId, out Sprite sprite)) continue;
+                    
+                    Instantiate(_itemPresenter, _itemsParent, false).GetComponent<ItemPresenter>()
+                        .Setup(sprite, itemInstances.Count.ToString());
+                        
+                    builder.AppendLine($"Item: {itemId}, amount: {itemInstances.Count}");
+                }
+
+                if (builder.Length > 0 )
+                {
+                    OnLog.Invoke(builder.ToString());
+                }
+            }
+        }
+
+        private void ClearItems()
+        {
+            foreach (Transform child in _itemsParent)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+    }
 }
