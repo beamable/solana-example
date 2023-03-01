@@ -1,4 +1,6 @@
 ﻿using System;
+using Beamable.Common.Content;
+using Beamable.Common.Inventory;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 using UnityEngine;
@@ -14,6 +16,9 @@ namespace SolanaExamples.Scripts
 		public event Action OnDataChanged;
 
 		[SerializeField] private string _walletPassword = "1234";
+		[SerializeField] private Federation _federation;
+		[SerializeField] private CurrencyRef _currencyRef;
+		[SerializeField] private ItemRef _itemRef;
 
 		#region Auto properties
 
@@ -68,7 +73,10 @@ namespace SolanaExamples.Scripts
 
 		public string WalletPassword => _walletPassword;
 		public bool WalletConnected => Account != null;
-
+		public Federation Federation => _federation;
+		public CurrencyRef CurrencyRef => _currencyRef;
+		public ItemRef ItemRef => _itemRef;
+		
 		#endregion
 
 		private void Awake()

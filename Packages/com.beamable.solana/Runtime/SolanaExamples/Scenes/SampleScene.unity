@@ -2278,10 +2278,6 @@ MonoBehaviour:
   _page: inventory
   _walletExplorerButton: {fileID: 582532683}
   _getInventoryButton: {fileID: 1482034832}
-  _gemsRef:
-    Id: currency.gems
-  _swordsRef:
-    Id: items.sword
   _itemPresenter: {fileID: 6293005737014584835, guid: 886d95d387f2ee54aa22b02383f88f2f, type: 3}
   _itemsParent: {fileID: 773582394}
 --- !u!1 &746671857
@@ -3108,9 +3104,6 @@ MonoBehaviour:
   _detachIdentityButton: {fileID: 385446511}
   _getExternalIdentitiesButton: {fileID: 1866165355}
   _signMessageButton: {fileID: 263355507}
-  _federation:
-    Service: SolanaFederation
-    Namespace: solana
   _beamId: {fileID: 185117681}
   _walletId: {fileID: 79999278}
 --- !u!1 &1283769942
@@ -3979,6 +3972,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _walletPassword: 1234
+  _federation:
+    Service: SolanaFederation
+    Namespace: solana
+  _currencyRef:
+    Id: currency.gems
+  _itemRef:
+    Id: items.sword
 --- !u!1 &1749906203
 GameObject:
   m_ObjectHideFlags: 0
