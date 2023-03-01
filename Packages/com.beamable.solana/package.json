@@ -1,6 +1,6 @@
 {
   "name": "com.beamable.solana",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "displayName": "Beamable Solana",
   "description": "Integrate login and inventory with the Solana blockchain.",
   "unity": "2021.3",
