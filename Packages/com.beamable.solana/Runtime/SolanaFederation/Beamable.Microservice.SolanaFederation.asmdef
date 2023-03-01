@@ -5,14 +5,11 @@
     "Unity.Beamable.Runtime.Common",
     "Unity.Beamable.Server.Runtime",
     "Unity.Beamable.Server.Runtime.Shared",
-    "Unity.Beamable",
     "Beamable.SmallerJSON",
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",
     "Unity.Beamable.Solana.Common",
-    "Beamable.Storage.SolanaStorage",
-    "Beamable.Platform",
-    "Unity.Beamable.Customer.Common"
+    "Beamable.Storage.SolanaStorage"
   ],
   "includePlatforms": [
     "Editor"

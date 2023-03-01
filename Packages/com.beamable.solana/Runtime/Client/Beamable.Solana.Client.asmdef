@@ -1,0 +1,12 @@
+{
+  "name": "Beamable.Solana.Client",
+  "references": [
+    "Beamable.Platform",
+    "Unity.Beamable",
+    "Unity.Beamable.Runtime.Common",
+    "Unity.Beamable.Server.Runtime",
+    "Unity.Beamable.Server.Runtime.Common",
+    "Unity.Beamable.Solana.Common"
+  ],
+  "autoReferenced": true
+}
