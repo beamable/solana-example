@@ -6,7 +6,7 @@
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",
     "Unity.Beamable.Solana.Common",
-    "Unity.Beamable.Customer.MicroserviceClients",
+    "Beamable.Solana.Client",
     "Unity.ResourceManager",
     "Unity.Addressables",
     "Beamable.Platform",
