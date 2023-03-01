@@ -27,7 +27,7 @@ and add a part of this repository as an external package.
 **Before doing this, please ensure that the target project already has Beamable installed** 
 
 In the Unity Package Manager, [add a package via git-link](https://docs.unity3d.com/Manual/upm-ui-giturl.html).
-Use the following git-link.
+for `com.beamable.solana` and use the following git-link.
 ```shell
 https://github.com/beamable/solana-example.git?path=/Packages/com.beamable.solana#1.0.0
 ```
