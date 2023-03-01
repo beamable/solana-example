@@ -10,7 +10,9 @@
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",
     "Unity.Beamable.Solana.Common",
-    "Beamable.Storage.SolanaStorage"
+    "Beamable.Storage.SolanaStorage",
+    "Beamable.Platform",
+    "Unity.Beamable.Customer.Common"
   ],
   "includePlatforms": [
     "Editor"
