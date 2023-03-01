@@ -1,0 +1,17 @@
+{
+  "name": "Beamable.Solana.Editor",
+  "references": [
+    "Beamable.Microservice.SolanaFederation",
+    "Unity.Beamable.Editor.Server",
+    "Unity.Beamable.Server.Runtime",
+    "Unity.Beamable.Server.Runtime.Shared",
+    "Unity.Beamable.Editor",
+    "Unity.Beamable.Runtime.Common",
+    "Unity.Beamable.Solana.Common",
+    "Beamable.Solana.Configuration"
+  ],
+  "autoReferenced":false,
+  "includePlatforms":[
+    "Editor"
+  ]
+}

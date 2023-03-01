@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Beamable.Common;
+using Beamable.Microservices.SolanaFederation.Features.Configuration;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Storage;
 using MongoDB.Driver;
@@ -19,7 +20,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 
 		private static async Task<Wallet> ComputeRealmWallet(IMongoDatabase db)
 		{
-			var maybeExistingWallet = await VaultCollection.GetByName(db, Configuration.RealmWalletName);
+			var maybeExistingWallet = await VaultCollection.GetByName(db, ConfigurationService.Configuration.RealmWalletName);
 			if (maybeExistingWallet is not null) return maybeExistingWallet.ToWallet();
 
 			BeamableLogger.Log("Can't find a persisted realm wallet. Creating a new wallet...");
@@ -30,9 +31,9 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 			var insertSuccessful = await VaultCollection.TryInsert(db, newPersistedWallet);
 			if (insertSuccessful)
 			{
-				BeamableLogger.Log("Created realm wallet {RealmWalletName} {RealmWallet}", Configuration.RealmWalletName,
+				BeamableLogger.Log("Created realm wallet {RealmWalletName} {RealmWallet}", ConfigurationService.Configuration.RealmWalletName,
 					newWallet.Account.PublicKey.Key);
-				if (Configuration.AirDropAmount > 0) await newWallet.Account.Airdrop(Configuration.AirDropAmount);
+				if (ConfigurationService.Configuration.AirDropAmount > 0) await newWallet.Account.Airdrop(ConfigurationService.Configuration.AirDropAmount);
 				return newWallet;
 			}
 
