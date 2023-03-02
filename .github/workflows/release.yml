@@ -40,7 +40,7 @@ jobs:
           cd ./Packages/com.beamable.solana/
           VERSION=${{github.event.input.version}}
           
-          npm version ${VERSION:-0.0.0-$(date +'%Y%m%d%HH%s')} --allow-same-version
+          npm version ${VERSION:-0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%HH%s')} --allow-same-version
       - name: check package json
         run: cat ./Packages/com.beamable.solana/package.json
       - name: rename samples folder
@@ -52,3 +52,11 @@ jobs:
       - name: check registry
         run: |
           echo ${{env.NPM_REGISTRY}}
+      - name: publish
+        env: 
+          NPM_AUTH: ${{secrets.NPM_AUTH}}
+          NPM_REGISTRY: ${{env.NPM_REGISTRY}}
+        run: |
+          cd ./Packages/com.beamable.solana/
+          npm publish . --dry-run
+          
