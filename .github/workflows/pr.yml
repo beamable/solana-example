@@ -93,7 +93,7 @@ jobs:
         run: |
           rm -rf /github/workspace/dist
         shell: bash
-      - uses: game-ci/unity-builder@v2.0.4
+      - uses: game-ci/unity-builder@v2
         timeout-minutes: 30
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -102,7 +102,3 @@ jobs:
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
           unityVersion: ${{ matrix.unityVersion }}
-          projectPath: ${{ matrix.projectPath }}
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          allowDirtyBuild: true
-          buildsPath: dist
