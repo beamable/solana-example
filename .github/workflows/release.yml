@@ -35,12 +35,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - name: create version
-        run: |
-          VERSION=${{ github.event.inputs.version }}
-          echo "::set-output name=value::${VERSION:-github.sha}"
       - name: set package version
         run: |
+          VERSION=${{ github.event.inputs.version:-github.sha }}
           echo ${VERSION}
           cd ./Packages/com.beamable.solana/
           npm version ${VERSION} --allow-same-version
@@ -51,4 +48,6 @@ jobs:
       - name: check package folers
         run: ls ./Packages/com.beamable.solana
       - name: check registry
-        run: echo ${{ secrets.NPM_REGISTRY }}
+        run: |
+          X=${{secrets.NPM_REGISTRY }}
+          echo ${X}
