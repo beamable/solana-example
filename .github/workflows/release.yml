@@ -53,5 +53,5 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
-          custom_tag: ${{inputs.version::0.0.0}}
+          custom_tag: ${{inputs.version}}
           github_token: ${{ secrets.GITHUB_TOKEN }}
