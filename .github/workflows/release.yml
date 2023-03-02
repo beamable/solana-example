@@ -19,7 +19,7 @@ on:
 
 jobs:
   rerun-pr-steps:
-    if: github.event.inputs.prechecks
+    if: github.event.inputs.prechecks == true
     uses: Beamable/solana-example/.github/workflows/pr.yml@develop
     secrets: inherit
   build:
