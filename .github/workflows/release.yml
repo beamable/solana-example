@@ -62,5 +62,7 @@ jobs:
           NPM_REGISTRY: https://nexus.beamable.com/nexus/content/repositories/unity-dev/
         run: |
           cd ./Packages/com.beamable.solana/
-          npm publish . --registry ${NPM_REGISTRY} --dry-run
+          echo ${NPM_REGISTRY}
+          echo ${NPM_AUTH}
+          npm publish . --dry-run
           
