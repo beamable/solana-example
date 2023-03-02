@@ -27,6 +27,7 @@ jobs:
     if: always()
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    environment: ${{github.event.input.environment}}
     concurrency:
       group: release
       cancel-in-progress: true
@@ -57,7 +58,7 @@ jobs:
       - name: publish
         env: 
           NPM_AUTH: ${{secrets.NPM_AUTH}}
-          NPM_REGISTRY: https://nexus.beamable.com/nexus/content/repositories/unity-dev/
+          NPM_REGISTRY: ${{vars.NPM_REGISTRY}}
         run: |
           cd ./Packages/com.beamable.solana/
           echo ${NPM_REGISTRY}
