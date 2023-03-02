@@ -16,13 +16,13 @@ on:
         description: 'semantic version number, like 0.0.1. Do not include suffix data.'
         required: true
         type: string
-        
+
   workflow_call:
     secrets: inherit
 
 jobs:
   rerun-pr-steps:
-    uses: Beamable/solana-example/.github/workflows/pr@develop
+    uses: Beamable/solana-example/.github/workflows/pr.yml@develop
   build:
     needs: rerun-pr-steps
     timeout-minutes: 30
