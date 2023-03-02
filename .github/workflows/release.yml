@@ -54,8 +54,6 @@ jobs:
           echo ${{env.vars.NPM_REGISTRY}}
           echo ${{env.NPM_REGISTRY}}
           echo ${{vars.NPM_REGISTRY}}
-          echo ${{NPM_REGISTRY}}
-          echo ${NPM_REGISTRY}
       - name: publish
         env: 
           NPM_AUTH: ${{secrets.NPM_AUTH}}
