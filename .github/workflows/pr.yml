@@ -106,9 +106,5 @@ jobs:
           unityVersion: ${{ matrix.unityVersion }}
           projectPath: ${{ matrix.projectPath }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          versioning: Custom
-          version: 1.2.0
-          androidVersionCode: ${{ github.run_number }}
           allowDirtyBuild: true
           buildsPath: dist
-          buildMethod: BuildSampleProject.Development
