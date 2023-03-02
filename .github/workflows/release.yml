@@ -47,7 +47,6 @@ jobs:
         run: |
           mv ./Packages/com.beamable.solana/Samples ./Packages/com.beamable.solana/Samples~
           rm ./Packages/com.beamable.solana/Samples.meta
-          rm ./Packages/com.beamable.solana/Samples~.meta
       - name: check package folers
         run: ls ./Packages/com.beamable.solana
       - name: publish
