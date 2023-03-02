@@ -55,7 +55,7 @@ jobs:
       - name: publish
         env: 
           NPM_AUTH: ${{secrets.NPM_AUTH}}
-          NPM_REGISTRY: ${{env.vars.NPM_REGISTRY}}
+          NPM_REGISTRY: https://nexus.beamable.com/nexus/content/repositories/unity-dev/
         run: |
           cd ./Packages/com.beamable.solana/
           npm publish . --dry-run
