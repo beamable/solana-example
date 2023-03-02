@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Beamable.Common;
+using Beamable.Microservices.SolanaFederation.Features.Configuration;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc.Extensions;
 using Newtonsoft.Json;
@@ -18,11 +19,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.SolanaRpc
 	public static class SolanaRpcClient
 	{
 		private static readonly IRpcClient Client =
-			ClientFactory.GetClient(Configuration.SolanaCluster);
+			ClientFactory.GetClient(ConfigurationService.Configuration.SolanaCluster);
 
 		private static readonly HttpClient HttpClient = new();
 
-		private static readonly TokenBucket TokenBucket = new(Configuration.MaxRpcRequestsPerSec, 1000);
+		private static readonly TokenBucket TokenBucket = new(ConfigurationService.Configuration.MaxRpcRequestsPerSec, 1000);
 
 		private static async Task AcquireToken()
 		{

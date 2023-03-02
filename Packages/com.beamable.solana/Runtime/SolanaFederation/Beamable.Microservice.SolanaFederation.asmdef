@@ -5,7 +5,6 @@
     "Unity.Beamable.Runtime.Common",
     "Unity.Beamable.Server.Runtime",
     "Unity.Beamable.Server.Runtime.Shared",
-    "Unity.Beamable",
     "Beamable.SmallerJSON",
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",

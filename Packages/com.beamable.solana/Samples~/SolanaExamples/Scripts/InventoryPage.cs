@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Beamable.Common.Api.Inventory;
 using Beamable.Common.Inventory;
@@ -14,9 +15,6 @@ namespace SolanaExamples.Scripts
     {
         [SerializeField] private Button _walletExplorerButton;
         [SerializeField] private Button _getInventoryButton;
-
-        [SerializeField] private CurrencyRef _gemsRef;
-        [SerializeField] private ItemRef _swordsRef;
 
         [SerializeField] private ItemPresenter _itemPresenter;
         [SerializeField] private Transform _itemsParent;
@@ -35,27 +33,43 @@ namespace SolanaExamples.Scripts
         {
             Data.Instance.Working = true;
 
-            CurrencyContent gemsContent = await _gemsRef.Resolve();
-            gemsContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
+            try
             {
-                _cachedSprites.Add(gemsContent.Id, handle.Result);
-
-                if (_cachedSprites.Count == 2)
+                CurrencyContent currencyContent = await Data.Instance.CurrencyRef.Resolve();
+                currencyContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
                 {
-                    Data.Instance.Working = false;
-                }
-            };
+                    _cachedSprites.Add(currencyContent.Id, handle.Result);
 
-            ItemContent swordsContent = await _swordsRef.Resolve();
-            swordsContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
+                    if (_cachedSprites.Count == 2)
+                    {
+                        Data.Instance.Working = false;
+                    }
+                };
+            }
+            catch (Exception)
             {
-                _cachedSprites.Add(swordsContent.Id, handle.Result);
+                OnLog("<color=#FF0000>Create federated currency content in ContentManager " +
+                      "and set a reference in SolanaAuthExample</color>");
+            }
 
-                if (_cachedSprites.Count == 2)
+            try
+            {
+                ItemContent itemContent = await Data.Instance.ItemRef.Resolve();
+                itemContent.icon.LoadAssetAsync<Sprite>().Completed += handle =>
                 {
-                    Data.Instance.Working = false;
-                }
-            };
+                    _cachedSprites.Add(itemContent.Id, handle.Result);
+
+                    if (_cachedSprites.Count == 2)
+                    {
+                        Data.Instance.Working = false;
+                    }
+                };
+            }
+            catch (Exception)
+            {
+                OnLog("<color=#FF0000>Create federated item content in ContentManager " +
+                      "and set a reference in SolanaAuthExample</color>");
+            }
         }
 
         public override void OnRefresh()
@@ -75,7 +89,7 @@ namespace SolanaExamples.Scripts
         private async void OnGetInventoryClicked()
         {
             Data.Instance.Working = true;
-            
+
             ClearItems();
 
             InventoryView view = await Ctx.Api.InventoryService.GetCurrent();
@@ -89,10 +103,10 @@ namespace SolanaExamples.Scripts
                 foreach (var (currency, amount) in currencies)
                 {
                     if (!_cachedSprites.TryGetValue(currency, out Sprite sprite)) continue;
-                    
+
                     Instantiate(_itemPresenter, _itemsParent, false).GetComponent<ItemPresenter>()
                         .Setup(sprite, amount.ToString());
-                        
+
                     builder.AppendLine($"Currency: {currency}, amount: {amount}");
                 }
 
@@ -111,14 +125,14 @@ namespace SolanaExamples.Scripts
                 foreach (var (itemId, itemInstances) in items)
                 {
                     if (!_cachedSprites.TryGetValue(itemId, out Sprite sprite)) continue;
-                    
+
                     Instantiate(_itemPresenter, _itemsParent, false).GetComponent<ItemPresenter>()
                         .Setup(sprite, itemInstances.Count.ToString());
-                        
+
                     builder.AppendLine($"Item: {itemId}, amount: {itemInstances.Count}");
                 }
 
-                if (builder.Length > 0 )
+                if (builder.Length > 0)
                 {
                     OnLog.Invoke(builder.ToString());
                 }

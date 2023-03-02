@@ -3,7 +3,9 @@
     "Unity.Beamable.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Common",
     "Unity.Beamable.Server.Runtime.Mocks",
-    "Beamable.SmallerJSON"
+    "Beamable.SmallerJSON",
+    "Unity.Beamable.Server.Runtime",
+    "Unity.Beamable.Server.Runtime.Shared"
   ],
   "name": "Unity.Beamable.Solana.Common",
   "autoReferenced": true
