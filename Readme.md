@@ -35,6 +35,20 @@ https://github.com/beamable/solana-example.git?path=/Packages/com.beamable.solan
 Note: the end of the link includes the version number. You view the available versions by looking
 at this repositories git tags. 
 
+## Configuration
+Configuration defaults are hard-coded inside **Runtime/SolanaFederation/Configuration.cs**  
+You can override the values using the realm configuration (PORTAL: Operate -> Config).  
+Default values:  
+
+| **Namespace**     | **Key**                       | **Default value**             | **Description**                                                               |
+|-------------------|-------------------------------|-------------------------------|-------------------------------------------------------------------------------|
+| federation_solana | ClusterAddress                | https://api.devnet.solana.com | Cluster RPC API URI                                                           |
+| federation_solana | RealmWalletName               | default-wallet                | Name for the realm-scoped wallet                                              |
+| federation_solana | DefaultTokenCollectionName    | Beamable                      | Name for the default NFT collection                                           |
+| federation_solana | MaxRpcRequestsPerSec          | 6                             | RPC client throttling configuration (to stay below the limits on public APIs) |
+| federation_solana | AuthenticationChallengeTtlSec | 600                           | Authentication challenge TTL                                                  |
+| federation_solana | AirDropAmount                 | 1                             | If > 0, service will request an airdrop to the realm wallet after creation    |
+
 ## Overview
 TODO: ?
 
