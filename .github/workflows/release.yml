@@ -11,7 +11,6 @@ on:
         description: 'semantic version number, like 0.0.1. Do not include suffix data.'
         required: false
         type: string
-        default: ${{}}
       prechecks:
         description: 'should run build and test checks'
         required: false
