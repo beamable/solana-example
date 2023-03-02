@@ -53,5 +53,5 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
-          custom_tag: ${VERSION:-0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s')}
+          custom_tag: ${{VERSION:-0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s')}
           github_token: ${{ secrets.GITHUB_TOKEN }}
