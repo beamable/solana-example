@@ -243,8 +243,9 @@ namespace SolanaExamples.Scripts
 #if UNITY_EDITOR
             Data.Instance.Account = await LoginInGame();
 #elif (UNITY_IOS || UNITY_ANDROID || UNITY_WEBGL)
-		Account = await LoginPhantom();
+		    Data.Instance.Account = await LoginPhantom();
 #endif
+          
 
             OnLog(Data.Instance.Account != null
                 ? $"Wallet connected with PublicKey: {Data.Instance.Account.PublicKey.Key}"
