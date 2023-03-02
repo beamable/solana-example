@@ -40,14 +40,14 @@ jobs:
         run: |
           cd ./Packages/com.beamable.solana/
           VERSION=${{inputs.version}}
-          
-          npm version ${VERSION:-0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%HH%s')} --allow-same-version
+          npm version ${VERSION:-0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s')} --allow-same-version
       - name: check package json
         run: cat ./Packages/com.beamable.solana/package.json
       - name: rename samples folder
         run: |
           mv ./Packages/com.beamable.solana/Samples ./Packages/com.beamable.solana/Samples~
-          mv ./Packages/com.beamable.solana/Samples.meta ./Packages/com.beamable.solana/Samples~.meta
+          rm ./Packages/com.beamable.solana/Samples.meta
+          rm ./Packages/com.beamable.solana/Samples~.meta
       - name: check package folers
         run: ls ./Packages/com.beamable.solana
       - name: publish
