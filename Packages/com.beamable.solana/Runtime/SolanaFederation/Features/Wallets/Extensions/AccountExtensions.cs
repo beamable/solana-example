@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.Configuration;
+using Beamable.Microservices.SolanaFederation.Features.Wallets.Exceptions;
 using Solana.Unity.Programs.Utilities;
 using Solana.Unity.Rpc;
 using Solana.Unity.Wallet;
@@ -14,17 +15,18 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 		{
 			BeamableLogger.Log("Requesting airdrop of {Amount} to {PublicKey}", amount, account.PublicKey.Key);
 			var rpcClient = ClientFactory.GetClient(ConfigurationService.Configuration.SolanaCluster);
-			try
+
+			var airdropResponse =
+				await rpcClient.RequestAirdropAsync(account.PublicKey.Key, SolHelper.ConvertToLamports(amount));
+			BeamableLogger.Log("Airdrop finished with {@AirdropResponse}", airdropResponse);
+			if (airdropResponse.WasSuccessful)
 			{
-				var airdropResponse =
-					await rpcClient.RequestAirdropAsync(account.PublicKey.Key, SolHelper.ConvertToLamports(amount));
-				BeamableLogger.Log("Airdrop finished with {@AirdropResponse}", airdropResponse);
 				BeamableLogger.Log("Waiting for {WaitSec}s after airdrop for cluster state sync", waitSecAfterAirdrop);
 				await Task.Delay(waitSecAfterAirdrop * 1000);
 			}
-			catch (Exception ex)
+			else
 			{
-				BeamableLogger.LogError(ex);
+				throw new AirdropFailedException($"Airdrop failed with reason {airdropResponse.Reason}");
 			}
 		}
 	}
