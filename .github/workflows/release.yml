@@ -1,4 +1,4 @@
-name: PR
+name: Release
 
 on:
   workflow_dispatch:
@@ -17,9 +17,6 @@ on:
         required: true
         type: string
 
-  workflow_call:
-    secrets: inherit
-
 jobs:
   rerun-pr-steps:
     uses: Beamable/solana-example/.github/workflows/pr.yml@develop
@@ -35,4 +32,4 @@ jobs:
         with:
           node-version: 16
       - name: AdjustVersion
-        run: 
+        run: npm --version
