@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - ./
+          - /
         testMode:
           - playmode
           - editmode
@@ -39,6 +39,9 @@ jobs:
           key: Library-${{ matrix.projectPath }}-${{ matrix.unityVersion }}
           restore-keys: |
             Library-${{ matrix.projectPath }}-${{ matrix.unityVersion }}
+      - name: Check Build Dir 
+        run: |
+          ls ${{matrix.projectPath}}
       - uses: game-ci/unity-test-runner@v2
         id: tests
         timeout-minutes: 30
@@ -73,7 +76,7 @@ jobs:
         unityVersion:
           - 2021.3.2f1
         projectPath:
-          - ./
+          - /
     steps:
       - uses: actions/checkout@v2
         with:
@@ -89,6 +92,9 @@ jobs:
           key: Library-${{ matrix.projectPath }}-${{ matrix.unityVersion }}-${{ matrix.targetPlatform }}
           restore-keys: |
             Library-${{ matrix.projectPath }}-${{ matrix.unityVersion }}-${{ matrix.targetPlatform }}
+      - name: Check Build Dir 
+        run: |
+          ls ${{matrix.projectPath}}
       - name: Clean the build directory
         continue-on-error: true
         run: |
