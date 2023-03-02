@@ -51,4 +51,4 @@ jobs:
       - name: check package folers
         run: ls ./Packages/com.beamable.solana
       - name: check registry
-        run: echo ${{ environment.secrets.NPM_REGISTRY }}
+        run: echo ${{ secrets.NPM_REGISTRY }}
