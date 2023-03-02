@@ -52,11 +52,15 @@ jobs:
       - name: check registry
         run: |
           echo ${{env.vars.NPM_REGISTRY}}
+          echo ${{env.NPM_REGISTRY}}
+          echo ${{vars.NPM_REGISTRY}}
+          echo ${{NPM_REGISTRY}}
+          echo ${NPM_REGISTRY}
       - name: publish
         env: 
           NPM_AUTH: ${{secrets.NPM_AUTH}}
           NPM_REGISTRY: https://nexus.beamable.com/nexus/content/repositories/unity-dev/
         run: |
           cd ./Packages/com.beamable.solana/
-          npm publish . --dry-run
+          npm publish . --registry ${NPM_REGISTRY} --dry-run
           
