@@ -24,6 +24,7 @@ jobs:
     secrets: inherit
   build:
     needs: rerun-pr-steps
+    if: always()
     timeout-minutes: 30
     runs-on: ubuntu-latest
     concurrency:
