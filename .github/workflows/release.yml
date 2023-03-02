@@ -3,22 +3,23 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      packageEnv:
-        description: 'controls what type of version number is used.'
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
         required: true
-        default: 'nightly'
-        type: choice
-        options:
-        - nightly
-        - staging
-        - production
       version:
         description: 'semantic version number, like 0.0.1. Do not include suffix data.'
-        required: true
+        required: false
         type: string
+      prechecks:
+        description: 'should run build and test checks'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   rerun-pr-steps:
+    if: github.event.inputs.prechecks
     uses: Beamable/solana-example/.github/workflows/pr.yml@develop
     secrets: inherit
   build:
@@ -44,3 +45,5 @@ jobs:
         run: mv ./Packages/com.beamable.solana/Samples ./Packages/com.beamable.solana/Samples~
       - name: check package folers
         run: ls ./Packages/com.beamable.solana
+      - name: check registry
+        run: echo ${{secrets.NPM_REGISTRY}}
