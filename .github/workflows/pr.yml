@@ -5,6 +5,7 @@ on:
     branches:
       - 'feature/ci-testing'
   workflow_call:
+    secrets: inherit
 
 jobs:
   testAllModes:
