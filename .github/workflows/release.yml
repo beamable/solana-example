@@ -31,5 +31,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - name: AdjustVersion
-        run: npm --version
+      - name: create version
+        run: |
+          VERSION=${{ github.event.inputs.version }}
+          echo "::set-output name=value::${VERSION:-github.sha}"
+      - name: set package version
+        run: npm version ${VERSION} --allow-same-version
+      - name: check package json
+        run: cat ./Packages/com.beamable.solana/package.json
