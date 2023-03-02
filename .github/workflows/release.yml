@@ -50,13 +50,6 @@ jobs:
           mv ./Packages/com.beamable.solana/Samples.meta ./Packages/com.beamable.solana/Samples~.meta
       - name: check package folers
         run: ls ./Packages/com.beamable.solana
-      - name: check registry
-        run: |
-          echo hello
-          echo ${{vars.NPM_REGISTRY}}
-          echo world
-          echo ${{github.event.input.environment}}
-          echo byt
       - name: publish
         env: 
           NPM_AUTH: ${{secrets.NPM_AUTH}}
@@ -65,5 +58,5 @@ jobs:
           cd ./Packages/com.beamable.solana/
           echo ${NPM_REGISTRY}
           echo ${NPM_AUTH}
-          npm publish . --dry-run
+          npm publish .
           
