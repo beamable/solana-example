@@ -38,7 +38,8 @@ jobs:
       - name: set package version
         run: |
           cd ./Packages/com.beamable.solana/
-          npm version 0.1.2 --allow-same-version
+          VERSION=0.1.3
+          npm version ${VERSION} --allow-same-version
       - name: check package json
         run: cat ./Packages/com.beamable.solana/package.json
       - name: rename samples folder
@@ -47,5 +48,5 @@ jobs:
         run: ls ./Packages/com.beamable.solana
       - name: check registry
         run: |
-          X=${{secrets.NPM_REGISTRY }}
+          X=${{env.secrets.NPM_REGISTRY }}
           echo ${X}
