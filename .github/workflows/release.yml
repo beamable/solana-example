@@ -11,7 +11,7 @@ on:
         description: 'semantic version number, like 0.0.1. Do not include suffix data.'
         required: false
         type: string
-        default: ${{github.sha}}
+        default: ${{}}
       prechecks:
         description: 'should run build and test checks'
         required: false
@@ -39,7 +39,9 @@ jobs:
       - name: set package version
         run: |
           cd ./Packages/com.beamable.solana/
-          npm version ${{github.event.input.version}} --allow-same-version
+          VERSION=${{github.event.input.version}}
+          
+          npm version ${VERSION:-${{github.sha}}} --allow-same-version
       - name: check package json
         run: cat ./Packages/com.beamable.solana/package.json
       - name: rename samples folder
