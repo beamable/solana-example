@@ -27,7 +27,7 @@ jobs:
     if: always()
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    environment: nightly
+    environment: ${{inputs.environment}}
     concurrency:
       group: release
       cancel-in-progress: true
@@ -39,7 +39,7 @@ jobs:
       - name: set package version
         run: |
           cd ./Packages/com.beamable.solana/
-          VERSION=${{github.event.input.version}}
+          VERSION=${{inputs.version}}
           
           npm version ${VERSION:-0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%HH%s')} --allow-same-version
       - name: check package json
