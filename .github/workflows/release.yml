@@ -31,6 +31,7 @@ jobs:
       group: release
       cancel-in-progress: true
     steps: 
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
           node-version: 16
