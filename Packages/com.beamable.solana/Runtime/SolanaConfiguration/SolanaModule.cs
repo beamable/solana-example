@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 
 namespace Beamable.Solana.Configuration
 {
@@ -23,3 +24,4 @@ namespace Beamable.Solana.Configuration
 		}
 	}
 }
+#endif
