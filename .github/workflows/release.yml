@@ -52,9 +52,11 @@ jobs:
         run: ls ./Packages/com.beamable.solana
       - name: check registry
         run: |
-          echo ${{env.vars.NPM_REGISTRY}}
-          echo ${{env.NPM_REGISTRY}}
+          echo hello
           echo ${{vars.NPM_REGISTRY}}
+          echo world
+          echo ${{github.event.input.environment}}
+          echo byt
       - name: publish
         env: 
           NPM_AUTH: ${{secrets.NPM_AUTH}}
