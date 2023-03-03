@@ -57,6 +57,8 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git status
+          echo "adding all the stuff"
+          git add .
           git commit -a -m "bundling code for release $VERSION"
           git status
           git tag -d $VERSION
