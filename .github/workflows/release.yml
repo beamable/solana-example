@@ -32,8 +32,8 @@ jobs:
       group: release
       cancel-in-progress: true
     env: 
-      NIGHTLY_VERSION: ${0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s')}
-      VERSION: ${{ inputs.version || '${NIGHTLY_VERSION}' }}
+      NIGHTLY_VERSION: ${{0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s')}}
+      VERSION: ${{ inputs.version || '0.0.0' }}
     steps: 
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
