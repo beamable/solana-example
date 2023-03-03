@@ -32,7 +32,6 @@ jobs:
       group: release
       cancel-in-progress: true
     env: 
-      NIGHTLY_VERSION: ${{0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s')}}
       VERSION: ${{ inputs.version || '0.0.0' }}
     steps: 
       - uses: actions/checkout@v2
@@ -42,7 +41,6 @@ jobs:
       - name: set package version
         run: |
           cd ./Packages/com.beamable.solana/
-          echo night would be $NIGHTLY_VERSION
           echo using version $VERSION
           npm version $VERSION --allow-same-version
       - name: check package json
