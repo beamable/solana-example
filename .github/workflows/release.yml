@@ -32,6 +32,8 @@ jobs:
     concurrency:
       group: release
       cancel-in-progress: true
+    env: 
+      VERSION: ${{ inputs.version || 0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s' }}
     steps: 
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
@@ -40,8 +42,7 @@ jobs:
       - name: set package version
         run: |
           cd ./Packages/com.beamable.solana/
-          VERSION=${{inputs.version}}
-          npm version ${VERSION:-0.0.0-PREVIEW.NIGHTLY-$(date +'%Y%m%d%H%s')} --allow-same-version
+          npm version $VERSION --allow-same-version
       - name: check package json
         run: cat ./Packages/com.beamable.solana/package.json
       - name: rename samples folder
@@ -56,5 +57,8 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git status
+          git add --all
+          git commit -m "bundling code for release $VERSION"
+          git tag -a $VERSION -m "release $VERSION"
           git tag
           git describe
