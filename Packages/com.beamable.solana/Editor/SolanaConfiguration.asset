@@ -12,3 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79b0921da5d9431ca294d5cc41ea2d9f, type: 3}
   m_Name: SolanaConfiguration
   m_EditorClassIdentifier: 
+  sharedConfiguration:
+    SelectedCluster: 1
+    CustomClusterAddress: 
+    MaxRpcRequestsPerSec: 6
+    AuthenticationChallengeTtlSec: 600
+    RealmWalletName: default-wallet
+    DefaultTokenCollectionName: Beamable
+    AirDropAmount: 1
