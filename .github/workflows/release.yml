@@ -13,10 +13,10 @@ on:
         default: 0.0.0
         type: string
       prechecks:
-        description: 'should run build and test checks'
+        description: 'run build and test checks'
         required: false
         type: boolean
-        default: true
+        default: false
 
 jobs:
   rerun-pr-steps:
@@ -57,8 +57,10 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git status
-          git add --all
+          git add -a
           git commit -m "bundling code for release $VERSION"
+          git status
+          git tag -d $VERSION
           git tag -a $VERSION -m "release $VERSION"
           git tag
           git describe
