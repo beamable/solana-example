@@ -50,9 +50,11 @@ jobs:
           rm ./Packages/com.beamable.solana/Samples.meta
       - name: check package folers
         run: ls ./Packages/com.beamable.solana
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          custom_tag: ${{inputs.version}}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: tag and push
+        run: |
+          git --version
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git status
+          git tag
+          git describe
