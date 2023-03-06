@@ -36,6 +36,8 @@ namespace SolanaExamples.Scripts
 
         private async void Start()
         {
+            Data.Instance.Working = true;
+            
             _connectWalletButton.onClick.AddListener(OnConnectClicked);
             _attachIdentityButton.onClick.AddListener(OnAttachClicked);
             _detachIdentityButton.onClick.AddListener(OnDetachClicked);
@@ -44,20 +46,12 @@ namespace SolanaExamples.Scripts
 
             _authService = Ctx.Api.AuthService;
 
-            await BeamContext.Default.OnReady;
-            await BeamContext.Default.Accounts.OnReady;
+            await Ctx.OnReady;
+            await Ctx.Accounts.OnReady;
 
             _beamId.text = $"<b>Beam ID</b> {Ctx.Accounts.Current.GamerTag.ToString()}";
-        }
 
-        private bool VerifyFederation()
-        {
-            bool verified = !string.IsNullOrEmpty(Data.Instance.Federation.Service) &&
-                            !string.IsNullOrEmpty(Data.Instance.Federation.Namespace);
-
-            if (verified) return true;
-            OnLog("<color=#FF0000>Please set Federation in SolanaAuthExample game object first</color>");
-            return false;
+            Data.Instance.Working = false;
         }
 
         public override void OnRefresh()
@@ -257,10 +251,12 @@ namespace SolanaExamples.Scripts
             // InGameWallet class is used for editor operations. It automatically approves all messages and transactions.
             Data.Instance.Wallet = new InGameWallet(RpcCluster.DevNet, null, true);
 
+            string pass = Ctx.Accounts.Current.GamerTag.ToString();
+            
             // We are retrieving local wallet or creating a new one if none was found
-            return await Data.Instance.Wallet.Login(Data.Instance.WalletPassword) ??
+            return await Data.Instance.Wallet.Login(pass) ??
                    await Data.Instance.Wallet.CreateAccount(new Mnemonic(WordList.English, WordCount.Twelve).ToString(),
-                       Data.Instance.WalletPassword);
+                       pass);
         }
 
         private async Task<Account> LoginPhantom()

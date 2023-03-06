@@ -15,7 +15,6 @@ namespace SolanaExamples.Scripts
 	{
 		public event Action OnDataChanged;
 
-		[SerializeField] private string _walletPassword = "1234";
 		[SerializeField] private Federation _federation;
 		[SerializeField] private CurrencyRef _currencyRef;
 		[SerializeField] private ItemRef _itemRef;
@@ -71,7 +70,6 @@ namespace SolanaExamples.Scripts
 
 		#region Property getters
 
-		public string WalletPassword => _walletPassword;
 		public bool WalletConnected => Account != null;
 		public Federation Federation => _federation;
 		public CurrencyRef CurrencyRef => _currencyRef;
