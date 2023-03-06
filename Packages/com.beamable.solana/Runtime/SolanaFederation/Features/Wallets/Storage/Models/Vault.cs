@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using Beamable.Microservices.SolanaFederation.Features.Configuration;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Solana.Unity.KeyStore.Model;
@@ -22,7 +21,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage.Model
 
 		public byte[] DecryptValue()
 		{
-			return KeystoreService.DecryptKeyStore(ConfigurationService.Configuration.RealmSecret, Value);
+			return KeystoreService.DecryptKeyStore(Configuration.RealmSecret, Value);
 		}
 
 		public Wallet ToWallet()
