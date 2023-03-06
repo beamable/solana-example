@@ -1,8 +1,0 @@
-{
-  "references": [
-    "Unity.Beamable",
-    "Unity.Beamable.Solana.Common"
-  ],
-  "name": "Beamable.Solana.Configuration",
-  "autoReferenced": true
-}
