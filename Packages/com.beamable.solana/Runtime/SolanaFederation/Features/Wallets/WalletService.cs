@@ -11,6 +11,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 {
 	public static class WalletService
 	{
+		private const string RealmWalletName = "default-wallet";
 		private static Wallet _cachedWallet;
 
 		public static async ValueTask<Wallet> GetOrCreateRealmWallet(IMongoDatabase db)
@@ -20,18 +21,18 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 
 		private static async Task<Wallet> ComputeRealmWallet(IMongoDatabase db)
 		{
-			var maybeExistingWallet = await VaultCollection.GetByName(db, Configuration.RealmWalletName);
+			var maybeExistingWallet = await VaultCollection.GetByName(db, RealmWalletName);
 			if (maybeExistingWallet is not null) return maybeExistingWallet.ToWallet();
 
 			BeamableLogger.Log("Can't find a persisted realm wallet. Creating a new wallet...");
 			var newMnemonic = new Mnemonic(WordList.English, WordCount.TwentyFour);
 			var newWallet = new Wallet(newMnemonic);
-			var newPersistedWallet = newWallet.ToVault();
+			var newPersistedWallet = newWallet.ToVault(RealmWalletName);
 
 			var insertSuccessful = await VaultCollection.TryInsert(db, newPersistedWallet);
 			if (insertSuccessful)
 			{
-				BeamableLogger.Log("Created realm wallet {RealmWalletName} {RealmWallet}", Configuration.RealmWalletName,
+				BeamableLogger.Log("Created realm wallet {RealmWalletName} {RealmWallet}", RealmWalletName,
 					newWallet.Account.PublicKey.Key);
 				await FundWallet(Configuration.AirDropAmount, newWallet);
 				return newWallet;

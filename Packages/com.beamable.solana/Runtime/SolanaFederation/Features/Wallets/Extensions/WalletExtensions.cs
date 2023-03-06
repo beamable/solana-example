@@ -17,11 +17,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions
 				wallet.Account.PublicKey.Key);
 		}
 
-		public static Vault ToVault(this Wallet wallet)
+		public static Vault ToVault(this Wallet wallet, string walletName)
 		{
 			return new Vault
 			{
-				Name = Configuration.RealmWalletName,
+				Name = walletName,
 				Value = wallet.EncryptMnemonic()
 			};
 		}

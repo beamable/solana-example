@@ -25,7 +25,6 @@ namespace Beamable.Microservices.SolanaFederation
 		#region ConfigurationValues
 
 		public static string ClusterAddress => GetValue(nameof(ClusterAddress), "https://api.devnet.solana.com");
-		public static string RealmWalletName => GetValue(nameof(RealmWalletName), "default-wallet");
 		public static string DefaultTokenCollectionName => GetValue(nameof(DefaultTokenCollectionName), "Beamable");
 		public static int MaxRpcRequestsPerSec => GetValue(nameof(MaxRpcRequestsPerSec), 6);
 		public static int AuthenticationChallengeTtlSec => GetValue(nameof(AuthenticationChallengeTtlSec), 600);
