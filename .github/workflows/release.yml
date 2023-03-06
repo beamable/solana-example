@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'semantic version number, like 0.0.1'
+        required: false
+        type: string
+      prechecks:
+        description: 'run build and test checks'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  rerun-pr-steps:
+    if: github.event.inputs.prechecks == 'true'
+    uses: Beamable/solana-example/.github/workflows/pr.yml@develop
+    secrets: inherit
+  build:
+    needs: rerun-pr-steps
+    if: always()
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release
+      cancel-in-progress: true
+    env: 
+      VERSION: ${{ inputs.version || '0.0.0' }}
+    steps: 
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: set package version
+        run: |
+          cd ./Packages/com.beamable.solana/
+          echo using version $VERSION
+          npm version $VERSION --allow-same-version
+      - name: check package json
+        run: cat ./Packages/com.beamable.solana/package.json
+      - name: rename samples folder
+        run: |
+          mv ./Packages/com.beamable.solana/Samples ./Packages/com.beamable.solana/Samples~
+          rm ./Packages/com.beamable.solana/Samples.meta
+      - name: check package folers
+        run: ls ./Packages/com.beamable.solana
+      - name: tag and push
+        run: |
+          git --version
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git status
+          echo "adding all the stuff"
+          git add .
+          git commit -a -m "bundling code for release $VERSION"
+          git status
+          git tag -d $VERSION || true
+          git push --delete origin $VERSION || true
+          git tag -a $VERSION -m "release $VERSION"
+          git tag
+          git describe
+          git push --tags
+          echo "done with git stuff"
