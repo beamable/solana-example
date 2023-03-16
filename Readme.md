@@ -4,6 +4,8 @@ Welcome to the Beamable Solana Sample project! This is a Unity project that demo
 to integrate the [Solana](https://solana.com/) blockchain into a [Beamable](https://beamable.com/) 
 powered game.
 
+#[Full Documentation.](https://docs.beamable.com/docs/solana-integration)
+
 ## Getting Started
 
 Before getting started, please head to [Beamable](https://beamable.com/) and sign up. 
