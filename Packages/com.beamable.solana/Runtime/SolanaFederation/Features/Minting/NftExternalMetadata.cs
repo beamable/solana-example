@@ -13,7 +13,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 		[JsonProperty("attributes")]
 		public IList<MetadataAttribute> Attributes { get; }
 
-		public NftExternalMetadata(Dictionary<string, string> properties, string contentId)
+		public NftExternalMetadata(Dictionary<string, string> properties)
 		{
 			SpecialProperties = new Dictionary<string, object>();
 			Attributes = new List<MetadataAttribute>();

@@ -191,7 +191,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 				var mintAccount = new Account();
 				BeamableLogger.Log("Minting NFT {TokenAddress} for {ContentId}", mintAccount.PublicKey, newItem.contentId);
 
-				var mintExternalMetadata = new NftExternalMetadata(propertyMap, newItem.contentId);
+				var mintExternalMetadata = new NftExternalMetadata(propertyMap);
 				var metadataUri = await NtfExternalMetadataService.SaveMetadata(beamableRequester, mintExternalMetadata);
 
 				AddNewMintInstructions(realmWallet, mintAccount, minBalanceForExemption, newItem.contentId, defaultCollection,
