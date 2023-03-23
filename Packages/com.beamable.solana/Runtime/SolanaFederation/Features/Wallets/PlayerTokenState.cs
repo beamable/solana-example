@@ -6,7 +6,6 @@ using Beamable.Common;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Minting;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
-using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.Wallet;

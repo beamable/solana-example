@@ -10,11 +10,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage
 	{
 		private static IMongoCollection<Mint> _collection;
 
-		public static async ValueTask<IMongoCollection<Mint>> Get(IMongoDatabase db)
+		private static async ValueTask<IMongoCollection<Mint>> Get()
 		{
 			if (_collection is null)
 			{
-				_collection = db.GetCollection<Mint>("mint");
+				_collection = ServiceContext.Database.GetCollection<Mint>("mint");
 				await _collection.Indexes.CreateOneAsync(
 					new CreateIndexModel<Mint>(
 						Builders<Mint>.IndexKeys
@@ -28,18 +28,18 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting.Storage
 			return _collection;
 		}
 
-		public static async Task<List<Mint>> GetAll(IMongoDatabase db)
+		public static async Task<List<Mint>> GetAll()
 		{
-			var collection = await Get(db);
+			var collection = await Get();
 			var mints = await collection
 				.Find(x => true)
 				.ToListAsync();
 			return mints;
 		}
 
-		public static async Task Upsert(IMongoDatabase db, IEnumerable<Mint> mints)
+		public static async Task Upsert(IEnumerable<Mint> mints)
 		{
-			var collection = await Get(db);
+			var collection = await Get();
 			var ops = mints
 				.Select(mint => new ReplaceOneModel<Mint>
 					(Builders<Mint>.Filter.Where(x => x.ContentId == mint.ContentId && x.PublicKey == mint.PublicKey), mint)
