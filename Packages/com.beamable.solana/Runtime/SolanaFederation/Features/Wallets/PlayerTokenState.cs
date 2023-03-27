@@ -52,9 +52,9 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 					if (metadataAccount is not null && !string.IsNullOrEmpty(metadataAccount.metadataV3?.uri))
 					{
 						var metadata = await SolanaRpcClient.FetchOffChainData(metadataAccount.metadataV3.uri);
-						if (metadata is not null && metadata.attributes?.Any() == true)
+						if (metadata is not null)
 						{
-							token.Properties = metadata.attributes.ToDictionary(x => x.trait_type, x => x.value);
+							token.Properties = metadata.GetProperties();
 						}
 					}
 				}
