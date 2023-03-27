@@ -16,8 +16,10 @@ namespace Beamable.Microservices.SolanaFederation.Features.Collections
 	{
 		private static readonly ConcurrentDictionary<string, Account> CachedCollections = new();
 
-		public static async ValueTask<Account> GetOrCreateCollection(string name, Wallet realmWallet)
+		public static async ValueTask<Account> GetOrCreateCollection(string name)
 		{
+			var realmWallet = ServiceContext.RealmWallet;
+			
 			var collectionKey = $"_collection.{name}";
 
 			if (CachedCollections.TryGetValue(collectionKey, out var cachedCollection)) return cachedCollection;

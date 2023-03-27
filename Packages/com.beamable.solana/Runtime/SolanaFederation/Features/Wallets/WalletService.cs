@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Storage;
-using MongoDB.Driver;
 using Solana.Unity.Wallet;
 using Solana.Unity.Wallet.Bip39;
 
@@ -14,14 +13,14 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 		private const string RealmWalletName = "default-wallet";
 		private static Wallet _cachedWallet;
 
-		public static async ValueTask<Wallet> GetOrCreateRealmWallet(IMongoDatabase db)
+		public static async ValueTask<Wallet> GetOrCreateRealmWallet()
 		{
-			return _cachedWallet ??= await ComputeRealmWallet(db);
+			return _cachedWallet ??= await ComputeRealmWallet();
 		}
 
-		private static async Task<Wallet> ComputeRealmWallet(IMongoDatabase db)
+		private static async Task<Wallet> ComputeRealmWallet()
 		{
-			var maybeExistingWallet = await VaultCollection.GetByName(db, RealmWalletName);
+			var maybeExistingWallet = await VaultCollection.GetByName(RealmWalletName);
 			if (maybeExistingWallet is not null) return maybeExistingWallet.ToWallet();
 
 			BeamableLogger.Log("Can't find a persisted realm wallet. Creating a new wallet...");
@@ -29,7 +28,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 			var newWallet = new Wallet(newMnemonic);
 			var newPersistedWallet = newWallet.ToVault(RealmWalletName);
 
-			var insertSuccessful = await VaultCollection.TryInsert(db, newPersistedWallet);
+			var insertSuccessful = await VaultCollection.TryInsert(newPersistedWallet);
 			if (insertSuccessful)
 			{
 				BeamableLogger.Log("Created realm wallet {RealmWalletName} {RealmWallet}", RealmWalletName,
@@ -39,7 +38,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets
 			}
 
 			BeamableLogger.LogWarning("Wallet already created, fetching again");
-			return await ComputeRealmWallet(db);
+			return await ComputeRealmWallet();
 		}
 
 		private static async Task FundWallet(int amount, Wallet wallet)

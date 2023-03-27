@@ -17,7 +17,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 	{
 		private static readonly HttpClient HttpClient = new();
 
-		public static async Task<string> SaveMetadata(IBeamableRequester beamableRequester, NftExternalMetadata metadata)
+		public static async Task<string> SaveMetadata(NftExternalMetadata metadata)
 		{
 			var metadataJsonString = JsonConvert.SerializeObject(metadata);
 			var metadataPayload = Encoding.UTF8.GetBytes(metadataJsonString);
@@ -26,7 +26,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			var md5Bytes = md5.ComputeHash(metadataPayload);
 			var payloadChecksum = BitConverter.ToString(md5Bytes).Replace("-", "");
 
-			var saveBinaryResponse = await beamableRequester.Request<SaveBinaryResponse>(Method.POST,
+				var saveBinaryResponse = await ServiceContext.Requester.Request<SaveBinaryResponse>(Method.POST,
 				"/basic/content/binary", new SaveBinaryRequest
 				{
 					binary = new List<BinaryDefinition>

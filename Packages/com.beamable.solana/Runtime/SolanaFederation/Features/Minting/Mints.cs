@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Beamable.Common;
-using Beamable.Common.Api;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Collections;
 using Beamable.Microservices.SolanaFederation.Features.Minting.Storage;
@@ -12,7 +11,6 @@ using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Microservices.SolanaFederation.Features.Wallets.Extensions;
-using MongoDB.Driver;
 using Solana.Unity.Metaplex;
 using Solana.Unity.Programs;
 using Solana.Unity.Wallet;
@@ -21,17 +19,13 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 {
 	public class Mints
 	{
-		private readonly IMongoDatabase _db;
 		private readonly Dictionary<string, Mint> _mintsByContent;
 		private readonly Dictionary<string, Mint> _mintsByTokens;
-		private readonly Wallet _realmWallet;
 
-		public Mints(Wallet realmWallet, IMongoDatabase db)
+		public Mints()
 		{
 			_mintsByContent = new Dictionary<string, Mint>();
 			_mintsByTokens = new Dictionary<string, Mint>();
-			_realmWallet = realmWallet;
-			_db = db;
 		}
 
 		private void AddMint(Mint mint)
@@ -57,13 +51,13 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 		
 		public async Task LoadPersisted()
 		{
-			var persistedMints = await MintCollection.GetAll(_db);
+			var persistedMints = await MintCollection.GetAll();
 			persistedMints.ForEach(AddMint);
 		}
 
-		public async Task<List<PlayerTokenInfo>> MintNewCurrency(string id, Dictionary<string, long> currencies,
-			Wallet realmWallet, PlayerTokenState playerTokenState)
+		public async Task<List<PlayerTokenInfo>> MintNewCurrency(string id, Dictionary<string, long> currencies, PlayerTokenState playerTokenState)
 		{
+			var realmWallet = ServiceContext.RealmWallet;
 			var missingCurrencyIds = currencies.Keys
 				.Except(_mintsByContent.Keys)
 				.ToHashSet();
@@ -74,7 +68,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 				var newMints = new List<Mint>();
 
 				var defaultCollection =
-					await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName, realmWallet);
+					await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName);
 
 				var minBalanceForExemption = await SolanaRpcClient.GetMinimumBalanceForRentExemptionAsync(
 					TokenProgram.MintAccountDataSize
@@ -86,7 +80,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 						var mintAccount = realmWallet.GetAccount(currency.Key);
 						BeamableLogger.Log("{ContentId} is not minted. Minting token {TokenAddress}", currency.Key,
 							mintAccount.PublicKey.Key);
-						AddNewMintInstructions(realmWallet, mintAccount, minBalanceForExemption, currency.Key, defaultCollection,
+						AddNewMintInstructions(mintAccount, minBalanceForExemption, currency.Key, defaultCollection,
 							"", "");
 						var mint = new Mint { ContentId = currency.Key, PublicKey = mintAccount.PublicKey.Key };
 						AddMint(mint);
@@ -94,7 +88,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 					}
 
 				if (newMints.Any())
-					TransactionManager.AddSuccessCallback(async _ => { await MintCollection.Upsert(_db, newMints); });
+					TransactionManager.AddSuccessCallback(async _ => { await MintCollection.Upsert(newMints); });
 			}
 
 			var playerKey = new PublicKey(id);
@@ -113,9 +107,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			return newTokens;
 		}
 
-		private static void AddNewMintInstructions(Wallet realmWallet, Account mintAccount, ulong minBalanceForExemption,
+		private static void AddNewMintInstructions(Account mintAccount, ulong minBalanceForExemption,
 			string contentId, Account defaultCollection, string symbol, string uri)
 		{
+			var realmWallet = ServiceContext.RealmWallet;
+			
 			// Calculate a program derived metadata
 			PublicKey.TryFindProgramAddress(
 				new List<byte[]>
@@ -167,10 +163,10 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			TransactionManager.AddSigner(mintAccount);
 		}
 
-		public async Task<List<PlayerTokenInfo>> MintNewItems(List<ItemCreateRequest> newItems, Wallet realmWallet,
-			IMongoDatabase db,
-			string playerWalletAddress, IBeamableRequester beamableRequester)
+		public async Task<List<PlayerTokenInfo>> MintNewItems(List<ItemCreateRequest> newItems, string playerWalletAddress)
 		{
+			var realmWallet = ServiceContext.RealmWallet;
+			
 			if (!newItems.Any()) return new List<PlayerTokenInfo>();
 
 			var minBalanceForExemption = await SolanaRpcClient.GetMinimumBalanceForRentExemptionAsync(
@@ -178,7 +174,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			);
 
 			var defaultCollection =
-				await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName, realmWallet);
+				await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName);
 
 			var playerKey = new PublicKey(playerWalletAddress);
 
@@ -192,9 +188,9 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 				BeamableLogger.Log("Minting NFT {TokenAddress} for {ContentId}", mintAccount.PublicKey, newItem.contentId);
 
 				var mintExternalMetadata = new NftExternalMetadata(propertyMap);
-				var metadataUri = await NtfExternalMetadataService.SaveMetadata(beamableRequester, mintExternalMetadata);
+				var metadataUri = await NtfExternalMetadataService.SaveMetadata(mintExternalMetadata);
 
-				AddNewMintInstructions(realmWallet, mintAccount, minBalanceForExemption, newItem.contentId, defaultCollection,
+				AddNewMintInstructions(mintAccount, minBalanceForExemption, newItem.contentId, defaultCollection,
 					"",
 					metadataUri);
 
@@ -236,7 +232,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			}
 
 			if (newMints.Any())
-				TransactionManager.AddSuccessCallback(async _ => { await MintCollection.Upsert(_db, newMints); });
+				TransactionManager.AddSuccessCallback(async _ => { await MintCollection.Upsert(newMints); });
 
 			return playerTokens;
 		}

@@ -8,11 +8,11 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage
 	{
 		private static IMongoCollection<Vault> _collection;
 
-		public static async ValueTask<IMongoCollection<Vault>> Get(IMongoDatabase db)
+		private static async ValueTask<IMongoCollection<Vault>> Get()
 		{
 			if (_collection is null)
 			{
-				_collection = db.GetCollection<Vault>("vault");
+				_collection = ServiceContext.Database.GetCollection<Vault>("vault");
 				await _collection.Indexes.CreateOneAsync(
 					new CreateIndexModel<Vault>(
 						Builders<Vault>.IndexKeys.Ascending(x => x.Name),
@@ -24,17 +24,17 @@ namespace Beamable.Microservices.SolanaFederation.Features.Wallets.Storage
 			return _collection;
 		}
 
-		public static async Task<Vault> GetByName(IMongoDatabase db, string name)
+		public static async Task<Vault> GetByName(string name)
 		{
-			var collection = await Get(db);
+			var collection = await Get();
 			return await collection
 				.Find(x => x.Name == name)
 				.FirstOrDefaultAsync();
 		}
 
-		public static async Task<bool> TryInsert(IMongoDatabase db, Vault vault)
+		public static async Task<bool> TryInsert(Vault vault)
 		{
-			var collection = await Get(db);
+			var collection = await Get();
 			try
 			{
 				await collection.InsertOneAsync(vault);

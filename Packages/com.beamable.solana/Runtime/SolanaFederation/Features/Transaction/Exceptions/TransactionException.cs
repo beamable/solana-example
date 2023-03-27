@@ -6,7 +6,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction.Exception
 	internal class TransactionException : MicroserviceException
 	{
 		public TransactionException(string message) : base(
-			(int)HttpStatusCode.InternalServerError, "TransactionException", message)
+			(int)HttpStatusCode.BadRequest, "TransactionError", message)
 		{
 		}
 	}

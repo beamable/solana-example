@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Beamable.Common;
+using Beamable.Common.Api;
 using Beamable.Common.Api.Inventory;
 using Beamable.Microservices.SolanaFederation.Features.Authentication;
 using Beamable.Microservices.SolanaFederation.Features.Authentication.Exceptions;
@@ -11,17 +12,6 @@ using Beamable.Microservices.SolanaFederation.Features.Transaction;
 using Beamable.Microservices.SolanaFederation.Features.Wallets;
 using Beamable.Server;
 using Beamable.Server.Api.RealmConfig;
-
-// THOUGHTS
-// 1. SolanaConfiguration asset is not a part of the container
-// 2. Should we modify docker build process and copy it there?? In this case we would need YAML parser to get data from it.
-// 3. Maybe it would be better to serialize config asset to json during build process and copy json into container? (for the moment seems to be the most reasonable?)
-// 4. Either way we need to have a mechanism to access this data here. It can't be done by accessing static
-//    SolanaConfiguration.Instance like we do in Beamable Unity SDK solution.
-// 5. Maybe we could have mongo collection created at some point that will hold configuration data? Is it even possible 
-//    to have more collection dependencies in one microservice? And is it possible to handle this on the fly during MS 
-//    build process?
-
 
 namespace Beamable.Microservices.SolanaFederation
 {
@@ -33,24 +23,27 @@ namespace Beamable.Microservices.SolanaFederation
         [InitializeServices]
         public static async Task Initialize(IServiceInitializer initializer)
         {
+            ServiceContext.Requester = initializer.GetService<IBeamableRequester>();
+
             // Load realm-scoped configuration
             var realmConfigService = initializer.GetService<IMicroserviceRealmConfigService>();
             Configuration.RealmConfig = await realmConfigService.GetRealmConfigSettings();
 
             var storage = initializer.GetService<IStorageObjectConnectionProvider>();
             var db = await storage.SolanaStorageDatabase();
+            ServiceContext.Database = db;
 
-            TransactionManager.InitTransaction();
+            TransactionManager.InitTransactionState();
 
             // Fetch the realm wallet on service start for early initialization
-            var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
+            var realmWallet = await WalletService.GetOrCreateRealmWallet();
+            ServiceContext.RealmWallet = realmWallet;
             TransactionManager.AddSigner(realmWallet.Account);
 
             // Fetch the default token collection on service start for early initialization
-            var _ = await CollectionService.GetOrCreateCollection(
-                Configuration.DefaultTokenCollectionName, realmWallet);
+            var _ = await CollectionService.GetOrCreateCollection(Configuration.DefaultTokenCollectionName);
 
-            if (TransactionManager.HasInstructions()) await TransactionManager.Execute(realmWallet);
+            if (TransactionManager.HasInstructions()) await TransactionManager.Execute();
         }
 
         public Promise<FederatedAuthenticationResponse> Authenticate(string token, string challenge, string solution)
@@ -87,44 +80,50 @@ namespace Beamable.Microservices.SolanaFederation
             Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
         {
             BeamableLogger.Log("Processing start transaction request {TransactionId}", transaction);
-            var db = await Storage.SolanaStorageDatabase();
 
-            TransactionManager.InitTransaction();
+            TransactionManager.InitTransactionState();
+            await TransactionManager.SaveInventoryTransaction(transaction);
 
-            var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
-            // All mints are initiated using the realm wallet so it needs to sign every transaction
-            TransactionManager.AddSigner(realmWallet.Account);
+            try
+            {
+                // All mints are initiated using the realm wallet so it needs to sign every transaction
+                TransactionManager.AddSigner(ServiceContext.RealmWallet.Account);
 
-            var mints = new Mints(realmWallet, db);
+                var mints = new Mints();
 
-            // Load persisted content/mint mappings
-            await mints.LoadPersisted();
+                // Load persisted content/mint mappings
+                await mints.LoadPersisted();
 
-            // Compute the current player token state
-            var playerTokenState = await PlayerTokenState.Compute(id, mints);
+                // Compute the current player token state
+                var playerTokenState = await PlayerTokenState.Compute(id, mints);
 
-            // Mint new items as NFTs
-            var newItemTokens = await mints.MintNewItems(newItems, realmWallet, db, id, Requester);
-            playerTokenState.MergeIn(newItemTokens);
+                // Mint new items as NFTs
+                var newItemTokens = await mints.MintNewItems(newItems, id);
+                playerTokenState.MergeIn(newItemTokens);
 
-            // TODO: update support for NFT metadata
+                // TODO: update support for NFT metadata
 
-            // Mint new currency as FTs 
-            var newCurrencyTokens = await mints.MintNewCurrency(id, currencies, realmWallet, playerTokenState);
-            playerTokenState.MergeIn(newCurrencyTokens);
+                // Mint new currency as FTs 
+                var newCurrencyTokens = await mints.MintNewCurrency(id, currencies, playerTokenState);
+                playerTokenState.MergeIn(newCurrencyTokens);
 
-            // Execute the transaction
-            await TransactionManager.Execute(realmWallet);
+                // Execute the transaction
+                await TransactionManager.Execute();
 
-            // Return the new federated state
-            return playerTokenState.ToProxyState();
+                // Return the new federated state
+                return playerTokenState.ToProxyState();
+            }
+            catch (Exception ex)
+            {
+                BeamableLogger.LogError("Error processing transaction {transaction} -> {error}. Clearing the transaction record to enable retries.", transaction, ex.Message);
+                await TransactionManager.ClearInventoryTransaction(transaction);
+                throw;
+            }
         }
 
         public async Promise<FederatedInventoryProxyState> GetInventoryState(string id)
         {
-            var db = await Storage.SolanaStorageDatabase();
-            var realmWallet = await WalletService.GetOrCreateRealmWallet(db);
-            var mints = new Mints(realmWallet, db);
+            var mints = new Mints();
 
             // Load persisted content/mint mappings
             await mints.LoadPersisted();

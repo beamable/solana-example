@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Beamable.Common;
 using Beamable.Microservices.SolanaFederation.Features.SolanaRpc;
 using Beamable.Microservices.SolanaFederation.Features.Transaction.Exceptions;
+using Beamable.Microservices.SolanaFederation.Features.Transaction.Storage;
 using Solana.Unity.Rpc.Builders;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.Wallet;
@@ -16,10 +17,25 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 	{
 		private static readonly AsyncLocal<TransactionState> TransactionState = new();
 
-		public static TransactionState InitTransaction()
+		public static TransactionState InitTransactionState()
 		{
 			TransactionState.Value = new TransactionState();
 			return TransactionState.Value;
+		}
+		
+		public static async Task SaveInventoryTransaction(string transactionId)
+		{
+			var isSuccess = await ServiceContext.Database.TryInsertTransaction(transactionId);
+			if (!isSuccess)
+			{
+				throw new TransactionException($"Transaction {transactionId} already processed or in-progress");
+			}
+		}
+		
+		public static async Task ClearInventoryTransaction(string transactionId)
+		{
+			await ServiceContext.Database.DeleteTransaction(transactionId);
+			TransactionState.Value = new TransactionState();
 		}
 
 		public static bool HasInstructions()
@@ -52,8 +68,10 @@ namespace Beamable.Microservices.SolanaFederation.Features.Transaction
 			TransactionState.Value.SuccessCallbacks.Add(callback);
 		}
 
-		public static async Task<string> Execute(Wallet feePayer)
+		public static async Task<string> Execute()
 		{
+			var feePayer = ServiceContext.RealmWallet;
+			
 			if (TransactionState.Value is null) throw new TransactionException("Transaction is not initialized");
 
 			if (!TransactionState.Value.Instructions.Any())
