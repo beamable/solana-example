@@ -163,7 +163,7 @@ namespace Beamable.Microservices.SolanaFederation.Features.Minting
 			TransactionManager.AddSigner(mintAccount);
 		}
 
-		public async Task<List<PlayerTokenInfo>> MintNewItems(List<ItemCreateRequest> newItems, string playerWalletAddress)
+		public async Task<List<PlayerTokenInfo>> MintNewItems(List<FederatedItemCreateRequest> newItems, string playerWalletAddress)
 		{
 			var realmWallet = ServiceContext.RealmWallet;
 			

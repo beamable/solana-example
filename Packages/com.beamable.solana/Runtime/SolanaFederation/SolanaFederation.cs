@@ -76,8 +76,13 @@ namespace Beamable.Microservices.SolanaFederation
             });
         }
 
-        public async Promise<FederatedInventoryProxyState> StartInventoryTransaction(string id, string transaction,
-            Dictionary<string, long> currencies, List<ItemCreateRequest> newItems)
+        public async Promise<FederatedInventoryProxyState> StartInventoryTransaction(
+            string id, 
+            string transaction,
+            Dictionary<string, long> currencies, 
+            List<FederatedItemCreateRequest> newItems,
+            List<FederatedItemDeleteRequest> deleteItems,
+            List<FederatedItemUpdateRequest> updateItems)
         {
             BeamableLogger.Log("Processing start transaction request {TransactionId}", transaction);
 
