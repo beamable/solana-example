@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.beamable": {
-      "version": "1.19.3",
+      "version": "1.19.8",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -15,11 +15,11 @@
       "url": "https://nexus.beamable.com/nexus/content/repositories/unity"
     },
     "com.beamable.server": {
-      "version": "1.19.3",
+      "version": "1.19.8",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.beamable": "1.19.3"
+        "com.beamable": "1.19.8"
       },
       "url": "https://nexus.beamable.com/nexus/content/repositories/unity"
     },
