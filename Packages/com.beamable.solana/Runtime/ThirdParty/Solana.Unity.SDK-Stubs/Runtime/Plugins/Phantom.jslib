@@ -29,7 +29,7 @@ mergeInto(LibraryManager.library, {
                   },
                });
                 console.log(signedTransaction);
-                var sign = signedTransaction.signature;
+                var sign = btoa(String.fromCharCode(...signedTransaction.signature));
                 var lenSign = lengthBytesUTF8(sign) + 1;
                 var strPtr = _malloc(lenSign);
                 stringToUTF8(sign, strPtr, lenSign);
@@ -55,7 +55,7 @@ mergeInto(LibraryManager.library, {
                   },
                });
                 console.log(signedMessage);
-                var sign = signedMessage.signature;
+                var sign = btoa(String.fromCharCode(...signedMessage.signature));
                 var lenSign = lengthBytesUTF8(sign) + 1;
                 var strPtr = _malloc(lenSign);
                 stringToUTF8(sign, strPtr, lenSign);

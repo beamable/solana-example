@@ -82,7 +82,7 @@ namespace Solana.Unity.SDK
             _currentTransaction.Signatures.Add(new SignaturePubKeyPair()
             {
                 PublicKey = _account.PublicKey,
-                Signature = Encoders.Base58.DecodeData(signature)
+                Signature = Convert.FromBase64String(signature)
             });
             _signedTransactionTaskCompletionSource.SetResult(_currentTransaction);
         }
@@ -93,7 +93,7 @@ namespace Solana.Unity.SDK
         [MonoPInvokeCallback(typeof(Action<string>))]
         public static void OnMessageSigned(string signature)
         {
-            _signedMessageTaskCompletionSource.SetResult(Encoders.Base58.DecodeData(signature));
+            _signedMessageTaskCompletionSource.SetResult(Convert.FromBase64String(signature));
         }
 
         #endregion
