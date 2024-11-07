@@ -1,6 +1,6 @@
 namespace Beamable.Common
 {
-	public class SolanaCloudIdentity : IThirdPartyCloudIdentity
+	public class SolanaCloudIdentity : IFederationId
 	{
 		public string UniqueName => "solana";
 	}
