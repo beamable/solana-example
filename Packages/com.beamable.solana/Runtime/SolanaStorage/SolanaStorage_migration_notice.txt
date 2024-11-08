@@ -1,0 +1,5 @@
+The storage object, SolanaStorage, was migrated on Thursday, November 7, 2024 5:55 PM. 
+
+The storage object has been moved outside of Unity, to Packages/com.beamable.solana/Runtime/BeamableServices~/SolanaStorage. 
+
+Please delete this file. 

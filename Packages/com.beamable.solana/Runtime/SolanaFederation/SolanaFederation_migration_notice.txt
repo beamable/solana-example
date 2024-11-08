@@ -1,0 +1,5 @@
+The service, SolanaFederation, was migrated on Thursday, November 7, 2024 5:55 PM. 
+
+The service has been moved outside of Unity, to Packages/com.beamable.solana/Runtime/BeamableServices~/SolanaFederation. 
+
+Please delete this file. 
